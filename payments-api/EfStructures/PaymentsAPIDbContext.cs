@@ -80,20 +80,30 @@ namespace PaymentsAPI.EfStructures
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
+                entity.Property(e => e.AcquiringBankSwift)
+                    .HasMaxLength(11)
+                    .HasColumnName("acquiring_bank_swift");
+
                 entity.Property(e => e.Amount)
                     .HasPrecision(5, 2)
                     .HasColumnName("amount");
 
-                entity.Property(e => e.Ccv)
-                    .HasMaxLength(3)
-                    .HasColumnName("ccv");
+                entity.Property(e => e.CardHolder)
+                    .HasMaxLength(30)
+                    .HasColumnName("card_holder");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp")
                     .HasColumnName("created_at")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                entity.Property(e => e.CurrencyCode)
+                    .HasMaxLength(3)
+                    .HasColumnName("currency_code");
+
                 entity.Property(e => e.ExpiryDate).HasColumnName("expiry_date");
+
+                entity.Property(e => e.IsAccepted).HasColumnName("is_accepted");
 
                 entity.Property(e => e.MerchantId).HasColumnName("merchant_id");
 

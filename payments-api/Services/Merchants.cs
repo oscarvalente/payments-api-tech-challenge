@@ -1,14 +1,16 @@
+using PaymentsAPI.Entities;
+
 namespace PaymentsAPI.Services
 {
-    public class Merchant : IMerchant
+    public class Merchants : IMerchant
     {
         private readonly IMerchantData merchantData;
-        public Merchant(IMerchantData _merchantData)
+        public Merchants(IMerchantData _merchantData)
         {
             merchantData = _merchantData;
         }
 
-        public Entities.Merchant getMerchantByUsername(string username)
+        public Merchant getMerchantByUsername(string username)
         {
             return merchantData.getMerchantByUsername(username);
         }

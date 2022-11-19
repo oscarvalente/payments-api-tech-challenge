@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PaymentsAPI.DataAccess;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,13 +22,17 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddScoped<ISignUp, SignUp>();
 builder.Services.AddScoped<ISignIn, SignIn>();
 builder.Services.AddScoped<IPayment, Payments>();
-builder.Services.AddScoped<IMerchant, Merchant>();
+builder.Services.AddScoped<IMerchant, Merchants>();
 builder.Services.AddSingleton<IToken, Token>();
+builder.Services.AddSingleton<IBankMatcher, BankMatcher>();
+builder.Services.AddSingleton<ICurrencyValidator, CurrencyValidator>();
 // data access
 builder.Services.AddScoped<IMerchantData, MerchantData>();
 builder.Services.AddScoped<IPaymentData, PaymentData>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<RequestProcessingTimeLoggerFilterAttribute>());
+
+builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
@@ -38,6 +43,8 @@ app.UseHttpLogging();
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {

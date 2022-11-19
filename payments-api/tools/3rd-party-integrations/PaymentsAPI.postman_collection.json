@@ -1,0 +1,315 @@
+{
+	"info": {
+		"_postman_id": "21cb247a-3794-42e7-8cb9-9309ded4d73f",
+		"name": "Payments - Tech Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22406442"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "sign-up Merchant A",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"merchant1\",\n    \"password\": \"Password0101!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/auth/sign-up",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"auth",
+								"sign-up"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sign-up Merchant B",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"merchant2\",\n    \"password\": \"Password0102!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/auth/sign-up",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"auth",
+								"sign-up"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sign-in Merchant A",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"merchant1\",\n    \"password\": \"Password0101!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/auth/sign-in",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"auth",
+								"sign-in"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sign-in Merchant B",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"merchant2\",\n    \"password\": \"Password0102!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/auth/sign-in",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"auth",
+								"sign-in"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "pay (AcquiringBank A)",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibWVyY2hhbnQxIiwiZXhwIjoxNjY4OTY2NTMwfQ.3_oRhk1rQPdDIsawzBv5hsZZQtyYpTBbnqSEEICY3WxA8ywgrtgwv8Wg50Dlr_PrAObkhArBi4TNrh6dz8uhCg",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cvv\": \"323\",\n    \"cardHolder\": \"John Doe\",\n    \"pan\": \"1234-1234-1234-1230\",\n    \"expiryDate\": \"01-01-2023\",\n    \"amount\": 20,\n    \"currencyCode\": \"eu\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/pay",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"pay"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pay (AcquiringBank B)",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibWVyY2hhbnQyIiwiZXhwIjoxNjY4OTY2NzEyfQ.scnb0aSwVKcFm0V5SS8cBGiZh_KCEP-URT2qVhy3jJpFLshNM4CM3RZRcFtqT1hEyADZdZZSs7famvBCV-wtEA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cvv\": \"323\",\n    \"cardHolder\": \"Juan Alberto\",\n    \"pan\": \"1234-5634-1234-1200\",\n    \"expiryDate\": \"01-01-2023\",\n    \"amount\": 20,\n    \"currencyCode\": \"eur\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/pay",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"pay"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get payment",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true,
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibWVyY2hhbnQyIiwiZXhwIjoxNjY4OTY2NzEyfQ.scnb0aSwVKcFm0V5SS8cBGiZh_KCEP-URT2qVhy3jJpFLshNM4CM3RZRcFtqT1hEyADZdZZSs7famvBCV-wtEA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:13401/api/payment/cd8fbee4-8431-42dc-9992-569b82a02b71",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "13401",
+							"path": [
+								"api",
+								"payment",
+								"cd8fbee4-8431-42dc-9992-569b82a02b71"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

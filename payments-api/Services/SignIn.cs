@@ -18,9 +18,9 @@ namespace PaymentsAPI.Services
 
             if (existingMerchant != null)
             {
-                if (existingMerchant.IsVerified == false)
+                if (existingMerchant.IsVerified != true)
                 {
-                    throw new SignInException("User is not verified", SignInExceptionCode.USER_NOT_VERIFIED);
+                    throw new SignInException("Merchant is not verified", SignInExceptionCode.MERCHANT_NOT_VERIFIED);
                 }
 
                 return Password.VerifyPasswordHash(password, existingMerchant.PasswordHash, existingMerchant.PasswordSalt);

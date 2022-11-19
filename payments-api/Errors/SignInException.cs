@@ -3,7 +3,7 @@ namespace PaymentsAPI.Errors
 
     public enum SignInExceptionCode
     {
-        USER_NOT_VERIFIED
+        MERCHANT_NOT_VERIFIED
     }
 
     [Serializable]

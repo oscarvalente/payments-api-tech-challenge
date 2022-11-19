@@ -1,7 +1,9 @@
+using PaymentsAPI.Entities;
+
 namespace PaymentsAPI.Services
 {
     public interface ISignUp
     {
-        public Entities.Merchant signUpMerchant(string username, string password);
+        public Merchant signUpMerchant(string username, string password);
     }
 }

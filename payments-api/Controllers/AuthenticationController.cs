@@ -2,9 +2,6 @@
 using PaymentsAPI.Services;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Entities;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace PaymentsAPI.Controllers.Authentication
 {
     [Route("api/auth")]
@@ -27,24 +24,27 @@ namespace PaymentsAPI.Controllers.Authentication
         [HttpPost("sign-up")]
         public async Task<ActionResult<string>> SignUp(AuthenticationPayload request)
         {
-            Entities.Merchant result = null;
+            Merchant result = null;
             try
             {
                 result = signUpService.signUpMerchant(request.username, request.password);
-            }
-            catch (SignUpException exception)
-            {
-                return BadRequest(exception.Message);
 
-            }
-
-            if (result != null)
-            {
+                if (result == null)
+                {
+                    return StatusCode(500, "Unknown error while signing-up merchant");
+                }
 
                 return NoContent();
             }
+            catch (SignUpException exception)
+            {
+                return BadRequest($"Invalid registration: {exception.Message}");
 
-            return StatusCode(500, "Unknown error");
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(500, "Unknown error while signing-up merchant");
+            }
         }
 
         [HttpPost("sign-in")]
@@ -63,7 +63,7 @@ namespace PaymentsAPI.Controllers.Authentication
             }
             catch (SignInException e)
             {
-                return StatusCode(400, $"Sign-in error: {e.Message}");
+                return StatusCode(400, $"Invalid sign-in attempt: {e.Message}");
             }
             catch (Exception e)
             {

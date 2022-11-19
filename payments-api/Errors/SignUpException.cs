@@ -5,7 +5,9 @@ namespace PaymentsAPI.Errors
     {
         USER_ALREADY_EXISTS,
         INVALID_USERNAME,
-        INVALID_PASSWORD
+        INVALID_PASSWORD,
+        INVALID_BANK_SWIFT,
+        BANK_NOT_SUPPORTED
     }
 
     [Serializable]

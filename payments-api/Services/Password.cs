@@ -7,7 +7,7 @@ namespace PaymentsAPI.Services
 {
     public class Password
     {
-        internal static void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
+        public static void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
         {
             using (var hmac = new HMACSHA512())
             {
@@ -16,7 +16,7 @@ namespace PaymentsAPI.Services
             }
         }
 
-        internal static bool VerifyPasswordHash(string password, string passwordHash, string passwordSalt)
+        public static bool VerifyPasswordHash(string password, string passwordHash, string passwordSalt)
         {
             using (var hmac = new HMACSHA512(Converter.bitConverterStringToByteArray(passwordSalt)))
             {

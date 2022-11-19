@@ -1,5 +1,8 @@
-public interface IToken
+namespace PaymentsAPI.Services
 {
-    public string verifyToken(string jwtToken);
-    public string createToken(string username);
+    public interface IToken
+    {
+        public string verifyToken(string jwtToken);
+        public string createToken(string username);
+    }
 }

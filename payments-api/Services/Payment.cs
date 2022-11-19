@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Utils;
@@ -6,31 +7,61 @@ namespace PaymentsAPI.Services
 {
     public class Payments : IPayment
     {
+        private readonly IBankMatcher bankMatcher;
         private readonly IPaymentData paymentData;
-        public Payments(IPaymentData _paymentData)
+        public Payments(IBankMatcher _bankMatcher, IPaymentData _paymentData)
         {
+            bankMatcher = _bankMatcher;
             paymentData = _paymentData;
         }
-        public void pay(Entities.Merchant merchant, string paymentRef, string pan, DateOnly cardExpiryDate, string ccv, decimal amount)
+        public string pay(Merchant merchant, string paymentRef, string cardHolder, string pan, DateOnly cardExpiryDate, string cvv, decimal amount, string currencyCode)
         {
-            // send payment to acquiring bank - just a dummy mock
-            if (!DummyAcquiringBank.isValidPayment(pan))
+            IDummyAcquiringBank dummyBank = bankMatcher.loadBankByPAN(pan);
+            if (dummyBank == null)
             {
-                throw new PaymentException("Invalid payment", PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK);
+                throw new PaymentException($"Acquiring bank is not supported", PaymentExceptionCode.BANK_NOT_SUPPORTED);
             }
-            // if ok save payment to DB
-            Payment payment = new Payment
+
+            Payment payment = null;
+            var isValidPayment = false;
+            // validate payment with acquiring bank - just a dummy mock
+            try
             {
-                RefUuid = paymentRef,
-                Amount = amount,
-                Pan = pan,
-                ExpiryDate = cardExpiryDate,
-                Ccv = ccv
-            };
-            paymentData.createPayment(payment, merchant);
+                isValidPayment = dummyBank.isValidPayment(pan, cardHolder, cardExpiryDate, cvv, amount);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error while processing payment with bank (swift code: {dummyBank.getSwiftCode()})");
+                throw new PaymentException("Error communicating payment with acquiring bank", PaymentExceptionCode.BANK_PAYMENT_PROCESSING);
+            }
+            if (!isValidPayment)
+            {
+                // if rejected we still save payment as rejected
+                try
+                {
+                    payment = paymentData.addPayment(paymentRef, amount, currencyCode, cardHolder.ToUpper(), pan, cardExpiryDate, dummyBank.getSwiftCode(), false, merchant);
+                }
+                catch (Exception)
+                {
+                    throw new PaymentException("Error saving payment to database", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, false);
+                }
+                throw new PaymentException("Rejected by the acquiring bank", PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK, payment.RefUuid);
+            }
+
+            // if accepted save payment as accepted
+            try
+            {
+                payment = paymentData.addPayment(paymentRef, amount, currencyCode, cardHolder.ToUpper(), pan, cardExpiryDate, dummyBank.getSwiftCode(), true, merchant);
+            }
+            catch (Exception)
+            {
+                throw new PaymentException("Error saving payment to database", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, true);
+            }
+
+            return payment.RefUuid;
         }
 
-        public PaymentViewModel getPaymentByRef(string paymentRef, Entities.Merchant merchant)
+        public PaymentViewModel getPaymentByRef(string paymentRef, Merchant merchant)
         {
             Payment payment = paymentData.getPaymentByRefUUID(paymentRef);
 

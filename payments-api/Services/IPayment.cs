@@ -4,7 +4,7 @@ namespace PaymentsAPI.Services
 {
     public interface IPayment
     {
-        public void pay(Entities.Merchant merchant, string paymentRef, string pan, DateOnly cardExpiryDate, string ccv, decimal amount);
+        public string pay(Merchant merchant, string paymentRef, string cardHolder, string pan, DateOnly cardExpiryDate, string cvv, decimal amount, string currencyCode);
         public PaymentViewModel getPaymentByRef(string paymentRef, Entities.Merchant merchant);
     }
 }

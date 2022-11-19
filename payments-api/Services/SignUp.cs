@@ -14,18 +14,23 @@ namespace PaymentsAPI.Services
         private Regex passwordFormat = new Regex(PASSWORD_REGEX);
 
         private readonly IMerchantData merchantData;
-        public SignUp(IMerchantData _merchantData)
+        public SignUp(IBankMatcher _bankMatcher, IMerchantData _merchantData)
         {
             merchantData = _merchantData;
         }
 
-        public Entities.Merchant signUpMerchant(string username, string password)
+        public Merchant signUpMerchant(string username, string password)
         {
             // check username format
-            bool isUsernameValid = usernameFormat.IsMatch(username);
-            if (!isUsernameValid)
+            if (!usernameFormat.IsMatch(username))
             {
                 throw new SignUpException("Invalid username format", SignUpExceptionCode.INVALID_USERNAME);
+            }
+
+            // check password format
+            if (!passwordFormat.IsMatch(password))
+            {
+                throw new SignUpException("Invalid password format", SignUpExceptionCode.INVALID_PASSWORD);
             }
 
             var existingCustomer = merchantData.getMerchantByUsername(username);
@@ -34,25 +39,11 @@ namespace PaymentsAPI.Services
                 throw new SignUpException("User already exists", SignUpExceptionCode.USER_ALREADY_EXISTS);
             }
 
-            Entities.Merchant merchant = new Entities.Merchant();
-
-            merchant.Username = username;
-
-            // check password format
-            bool isPasswordValid = passwordFormat.IsMatch(password);
-            if (!isPasswordValid)
-            {
-                throw new SignUpException("Invalid password format", SignUpExceptionCode.INVALID_PASSWORD);
-            }
+            Password.CreatePasswordHash(password, out string passwordHash, out string passwordSalt);
 
             // TODO: factory to create entities
 
-            Password.CreatePasswordHash(password, out string passwordHash, out string passwordSalt);
-            merchant.PasswordHash = passwordHash;
-            merchant.PasswordSalt = passwordSalt;
-            merchant.Address = "default street";
-
-            return merchantData.addMerchant(merchant);
+            return merchantData.addMerchant(username, passwordSalt, passwordHash, "default street");
         }
     }
 }

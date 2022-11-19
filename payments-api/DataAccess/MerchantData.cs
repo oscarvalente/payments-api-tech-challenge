@@ -1,10 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.IdentityModel.Tokens;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
-// using PaymentsAPI.EfStructures;
-// using PaymentsAPI.Entities;
 
 
 namespace PaymentsAPI.DataAccess
@@ -28,8 +23,16 @@ namespace PaymentsAPI.DataAccess
 
             return (Merchant)foundMerchant;
         }
-        public Merchant addMerchant(Merchant merchant)
+        public Merchant addMerchant(string username, string passwordSalt, string passwordHash, string address)
         {
+            Merchant merchant = new Merchant
+            {
+                Username = username,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt,
+                Address = address
+            };
+
             context.Merchants.Add(merchant);
             context.SaveChanges();
             return merchant;
