@@ -490,16 +490,7 @@ namespace unit_tests
 
             // Assert
             mockPaymentData.Verify(pd => pd.getPaymentByRefUUID(paymentRef), Times.Once);
-            var expectedPaymentVM = new PaymentViewModel
-            {
-                Pan = "****-****-****-1234",
-                CardExpiryDate = "31/12/2032",
-                CreatedAt = createdAt.ToString(),
-                Amount = 40.50M,
-                CurrencyCode = "EUR",
-                IsAccepted = true
-            };
-            Assert.Equal(JsonConvert.SerializeObject(expectedPaymentVM), JsonConvert.SerializeObject(result));
+            Assert.Equal(JsonConvert.SerializeObject(payment), JsonConvert.SerializeObject(result));
         }
     }
 }

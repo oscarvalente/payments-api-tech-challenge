@@ -61,7 +61,7 @@ namespace PaymentsAPI.Services
             return payment.RefUuid;
         }
 
-        public PaymentViewModel getPaymentByRef(string paymentRef, Merchant merchant)
+        public Payment getPaymentByRef(string paymentRef, Merchant merchant)
         {
             Payment payment = paymentData.getPaymentByRefUUID(paymentRef);
 
@@ -75,7 +75,7 @@ namespace PaymentsAPI.Services
                 throw new PaymentException("Payment retrieval not authorized", PaymentExceptionCode.PAYMENT_RETRIEVAL_NOT_AUTHORIZED);
             }
 
-            return new PaymentViewModel(payment);
+            return payment;
         }
     }
 }

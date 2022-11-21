@@ -185,7 +185,7 @@ namespace PaymentsAPI.Controllers.Payments
                     return StatusCode(403, "Merchant is not authorized to get payment");
                 }
 
-                return Json(payments.getPaymentByRef(paymentRef, merchant));
+                return Json(new PaymentViewModel(payments.getPaymentByRef(paymentRef, merchant)));
             }
             catch (PaymentException e)
             {
