@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Newtonsoft.Json;
 using PaymentsAPI.Controllers.Payments;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace unit_tests
 {
@@ -58,7 +61,15 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Returns("");
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
+            // return the exact same parameters with which it was invoked
+            .Returns((string code, string msg) => new APIError
+            {
+                Code = code,
+                Message = msg
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -72,7 +83,11 @@ namespace unit_tests
             // Assert
             mockToken.Verify(ts => ts.verifyToken("token"), Times.Once);
             Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Failed to authenticate", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "UNAUTHORIZED_ACCESS",
+                Message = "Failed to authenticate"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Fact]
@@ -123,7 +138,14 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Returns("");
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string code, string msg) => new APIError
+            {
+                Code = code,
+                Message = msg
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -137,7 +159,11 @@ namespace unit_tests
             // Assert
             mockToken.Verify(ts => ts.verifyToken("token"), Times.Once);
             Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Failed to authenticate", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "UNAUTHORIZED_ACCESS",
+                Message = "Failed to authenticate"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Fact]
@@ -188,7 +214,14 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Returns("");
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string code, string msg) => new APIError
+            {
+                Code = code,
+                Message = msg
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -201,7 +234,11 @@ namespace unit_tests
 
             // Assert
             Assert.Equal(403, result.StatusCode);
-            Assert.Equal("Merchant is not authorized to issue payment", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "UNAUTHORIZED_ACCESS",
+                Message = "Merchant is not authorized to issue payment"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Theory]
@@ -255,7 +292,14 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Returns("");
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string code, string msg) => new APIError
+            {
+                Code = code,
+                Message = msg
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -268,7 +312,11 @@ namespace unit_tests
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Invalid card holder format", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "INVALID_FORMAT_CARD_HOLDER",
+                Message = "Invalid card holder format"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Theory]
@@ -321,7 +369,14 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", new DateOnly(2020, 1, 1), payload.cvv, payload.amount, payload.currencyCode))
             .Returns("");
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string code, string msg) => new APIError
+            {
+                Code = code,
+                Message = msg
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -334,7 +389,11 @@ namespace unit_tests
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Invalid expiry date", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "INVALID_FORMAT_EXPIRY_DATE",
+                Message = "Invalid expiry date"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Fact]
@@ -385,7 +444,20 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, It.IsAny<string>(), payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Throws(new PaymentException("error saving payment", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, true));
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+
+            string PaymentRef = null;
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildPaymentRefResponse(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string paymentRef, string msg) =>
+            {
+                PaymentRef = paymentRef;
+                return new PaymentRefResponse
+                {
+                    PaymentRef = paymentRef,
+                    Message = msg
+                };
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -398,7 +470,11 @@ namespace unit_tests
 
             // Assert
             Assert.IsType<OkObjectResult>(result);
-            Assert.Equal($"{paymentRef} - your payment was accepted but it's still not available for status check", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                PaymentRef = PaymentRef,
+                Message = "Your payment was accepted but it's still not available for status check"
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         [Fact]
@@ -449,7 +525,21 @@ namespace unit_tests
             var mockPaymentService = new Mock<IPayment>();
             mockPaymentService.Setup(ps => ps.pay(merchant, It.IsAny<string>(), payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
             .Throws(new PaymentException("error saving payment", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, false));
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object)
+
+            string PaymentRef = null;
+            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
+            mockAPIResponseBuilder.Setup(arb => arb.buildClientErrorWithPaymentRef(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string code, string msg, string paymentRef) =>
+            {
+                PaymentRef = paymentRef;
+                return new APIErrorPaymentRef
+                {
+                    Code = code,
+                    Message = msg,
+                    PaymentRef = paymentRef
+                };
+            });
+            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -462,7 +552,12 @@ namespace unit_tests
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal($"Payment rejected due to: error saving payment - reference {paymentRef} (payment not yet available for status check)", result.Value);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "ERROR_SAVING_PAYMENT",
+                Message = $"Payment rejected due to: error saving payment - reference {paymentRef} (payment not yet available for status check)",
+                PaymentRef = PaymentRef
+            }), JsonConvert.SerializeObject(result.Value));
         }
 
         // TODO: complete test suite

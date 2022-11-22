@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace PaymentsAPI.Controllers.Payments
 {
@@ -23,17 +24,20 @@ namespace PaymentsAPI.Controllers.Payments
         private readonly ICurrencyValidator currencyValidatorService;
         private readonly IMerchant merchantService;
         private readonly IPayment payments;
+        private readonly IAPIResponseBuilder apiResponseBuilder;
 
-        public PaymentController(IToken _tokenService, ICurrencyValidator _currencyValidatorService, IMerchant _merchantService, IPayment _payments)
+
+        public PaymentController(IToken _tokenService, ICurrencyValidator _currencyValidatorService, IMerchant _merchantService, IPayment _payments, IAPIResponseBuilder _apiResponseBuilder)
         {
             tokenService = _tokenService;
             currencyValidatorService = _currencyValidatorService;
             merchantService = _merchantService;
             payments = _payments;
+            apiResponseBuilder = _apiResponseBuilder;
         }
 
         [HttpPost("pay")]
-        public async Task<ActionResult<string>> Pay(PaymentsPayload request)
+        public async Task<ActionResult<JsonContent>> Pay(PaymentsPayload request)
         {
             var paymentRef = Guid.NewGuid().ToString();
 
@@ -44,13 +48,13 @@ namespace PaymentsAPI.Controllers.Payments
 
                 if (username == null)
                 {
-                    return BadRequest("Failed to authenticate");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
                 }
             }
             catch (Exception e)
             {
                 // for cases where token decode fails
-                return BadRequest("Failed to authenticate");
+                return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
             }
 
             Merchant merchant = merchantService.getMerchantByUsername(username);
@@ -58,68 +62,68 @@ namespace PaymentsAPI.Controllers.Payments
             if (merchant == null)
             {
                 // cannot use Forbid - relies in auth handler and results in internal server error
-                return StatusCode(403, "Merchant is not authorized to issue payment");
+                return StatusCode(403, apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Merchant is not authorized to issue payment"));
             }
 
             try
             {
                 if (!cardHolderFormat.IsMatch(request.cardHolder))
                 {
-                    return BadRequest("Invalid card holder format");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CARD_HOLDER.ToString(), "Invalid card holder format"));
                 }
 
                 if (!panFormat.IsMatch(request.pan))
                 {
-                    return BadRequest("Invalid card number format");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CARD_NUMBER.ToString(), "Invalid card number format"));
                 }
 
                 // TODO: improve validation using JSON schema or so...
                 DateOnly expiryDate = DateOnly.Parse(request.expiryDate);
                 if (expiryDate.CompareTo(DateOnly.FromDateTime(DateTime.Now)) < 0)
                 {
-                    return BadRequest("Card has expired");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_CARD_EXPIRED.ToString(), "Card has expired"));
                 }
 
                 if (!cvvFormat.IsMatch(request.cvv))
                 {
-                    return BadRequest("Invalid CVV format");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CVV.ToString(), "Invalid CVV format"));
                 }
 
                 if (request.amount <= 0 || request.amount > 500)
                 {
-                    return BadRequest("Invalid amount. Only payments up to 500 are allowed");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_AMOUNT.ToString(), "Invalid amount. Only payments up to 500 are allowed"));
                 }
 
                 if (!currencyCodeFormat.IsMatch(request.currencyCode))
                 {
-                    return BadRequest("Invalid currency code format");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CURRENCY.ToString(), "Invalid currency code format"));
                 }
 
                 if (!currencyValidatorService.isCurrencySupported(request.currencyCode))
                 {
-                    return BadRequest("Currency code is not supported");
+                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.CURRENCY_NOT_SUPPORTED.ToString(), "Currency code is not supported"));
                 }
 
                 string refUuid = payments.pay(merchant, paymentRef, request.cardHolder, request.pan.Replace("-", ""), expiryDate, request.cvv, request.amount, request.currencyCode);
 
-                return Ok(refUuid);
+                return Ok(apiResponseBuilder.buildPaymentRefResponse(refUuid));
             }
             // validation of input
             catch (FormatException e)
             {
-                return BadRequest("Invalid expiry date");
+                return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_EXPIRY_DATE.ToString(), "Invalid expiry date"));
             }
             // validation of business logic
             catch (PaymentException e)
             {
                 if (e.code == PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK)
                 {
-                    return BadRequest($"Payment rejected due to: {e.Message} - reference {e.paymentRef}");
+                    return BadRequest(apiResponseBuilder.buildClientErrorWithPaymentRef(e.code.ToString(), $"Payment rejected due to: {e.Message} - reference {e.paymentRef}", e.paymentRef));
                 }
 
                 if (e.code == PaymentExceptionCode.BANK_PAYMENT_PROCESSING)
                 {
-                    return StatusCode(500, $"Payment error: {e.Message}");
+                    return StatusCode(500, apiResponseBuilder.buildClientError("UNKNOWN", $"Payment error: {e.Message}"));
                 }
                 if (e.code == PaymentExceptionCode.ERROR_SAVING_PAYMENT)
                 {
@@ -127,19 +131,21 @@ namespace PaymentsAPI.Controllers.Payments
                     // gracefully handle processed payments by bank but not saved into DB
                     if (e.isAccepted)
                     {
-                        return Ok($"{e.paymentRef} - your payment was accepted but it's still not available for status check");
+                        return Ok(apiResponseBuilder.buildPaymentRefResponse(e.paymentRef, "Your payment was accepted but it's still not available for status check"));
                     }
                     else
                     {
-                        return BadRequest($"Payment rejected due to: {e.Message} - reference {e.paymentRef} (payment not yet available for status check)");
+                        return BadRequest(apiResponseBuilder.buildClientErrorWithPaymentRef(e.code.ToString(),
+                            $"Payment rejected due to: {e.Message} - reference {e.paymentRef} (payment not yet available for status check)",
+                            e.paymentRef));
                     }
                 }
 
-                return BadRequest($"Payment rejected due to: {e.Message}");
+                return BadRequest(apiResponseBuilder.buildClientError(e.code.ToString(), $"Payment rejected due to: {e.Message}"));
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Unkown error while processing payment");
+                return StatusCode(500, apiResponseBuilder.buildInternalError("UNKNOWN", "Unkown error while processing payment"));
             }
         }
 
@@ -151,12 +157,12 @@ namespace PaymentsAPI.Controllers.Payments
                 bool isValid = Guid.TryParse(paymentRef, out var _);
                 if (!isValid)
                 {
-                    return BadRequest("Invalid payment reference format");
+                    return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.INVALID_FORMAT_PAYMENT_REF.ToString(), "Invalid payment reference format"));
                 }
             }
             catch (FormatException)
             {
-                return BadRequest("Invalid payment reference format");
+                return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.INVALID_FORMAT_PAYMENT_REF.ToString(), "Invalid payment reference format"));
             }
 
             string username = null;
@@ -166,13 +172,13 @@ namespace PaymentsAPI.Controllers.Payments
 
                 if (username == null)
                 {
-                    return BadRequest("Failed to authenticate");
+                    return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
                 }
             }
             catch (Exception e)
             {
                 // for cases where token decode fails
-                return BadRequest("Failed to authenticate");
+                return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
             }
 
             try
@@ -182,7 +188,7 @@ namespace PaymentsAPI.Controllers.Payments
                 if (merchant == null)
                 {
                     // cannot use Forbid - relies in auth handler and results in internal server error
-                    return StatusCode(403, "Merchant is not authorized to get payment");
+                    return StatusCode(403, apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Merchant is not authorized to get payment"));
                 }
 
                 return Json(new PaymentViewModel(payments.getPaymentByRef(paymentRef, merchant)));
@@ -191,11 +197,11 @@ namespace PaymentsAPI.Controllers.Payments
             {
                 Console.WriteLine(e.Message);
                 // respond with a 404 regardless of what happened - payments are sensitive data so we don't want to heighten info awareness for possible attacker
-                return NotFound($"Payment not found");
+                return NotFound(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.NOT_FOUND.ToString(), $"Payment not found"));
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Unkown error while processing payment retrieval");
+                return StatusCode(500, apiResponseBuilder.buildInternalError("UNKOWN", "Unkown error while processing payment retrieval"));
             }
         }
     }

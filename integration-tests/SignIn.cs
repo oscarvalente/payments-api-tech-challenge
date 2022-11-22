@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,6 +6,7 @@ using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace integration_tests
 {
@@ -81,7 +83,12 @@ namespace integration_tests
 
             // Assert
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid credentials", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-INVALID_CREDENTIALS",
+                Message = "Invalid credentials"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         [Fact]
@@ -120,7 +127,12 @@ namespace integration_tests
 
             // Assert
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid credentials", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-INVALID_CREDENTIALS",
+                Message = "Invalid credentials"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         [Fact]
@@ -158,7 +170,12 @@ namespace integration_tests
 
             // Assert
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid sign-in attempt: Merchant is not verified", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-MERCHANT_NOT_VERIFIED",
+                Message = "Invalid sign-in attempt: Merchant is not verified"
+            }), JsonConvert.SerializeObject(apiError));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace PaymentsAPI.Errors
     [Serializable]
     public class SignUpException : Exception
     {
-        private SignUpExceptionCode code { get; set; }
+        public SignUpExceptionCode code { get; set; }
 
         public SignUpException(string message, SignUpExceptionCode code)
         : base(message)

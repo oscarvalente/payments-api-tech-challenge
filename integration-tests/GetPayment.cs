@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace integration_tests
 {
@@ -79,9 +80,9 @@ namespace integration_tests
             // authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.GetAsync($"/api/payment/{paymentRef}");
 
             // Assert
@@ -149,9 +150,9 @@ namespace integration_tests
             // authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.GetAsync($"/api/payment/{paymentRef}");
 
             // Assert
@@ -236,16 +237,21 @@ namespace integration_tests
             // authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", token); // use merchant B token
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token); // use merchant B token
             var paymentResponse = await httpClient.GetAsync($"/api/payment/{paymentRef}"); // read payment belonging to merchant A
 
             // Assert
 
             // - HTTP
             Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Payment not found", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-NOT_FOUND",
+                Message = "Payment not found"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         [Fact]
@@ -287,16 +293,21 @@ namespace integration_tests
             // authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.GetAsync($"/api/payment/{Guid.NewGuid().ToString()}");
 
             // Assert
 
             // - HTTP
             Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Payment not found", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-NOT_FOUND",
+                Message = "Payment not found"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         [Fact]
@@ -338,16 +349,21 @@ namespace integration_tests
             // authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.GetAsync($"/api/payment/zzzzzz-ZZZ");
 
             // Assert
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Invalid payment reference format", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-INVALID_FORMAT_PAYMENT_REF",
+                Message = "Invalid payment reference format"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         /// <summary>
@@ -419,7 +435,7 @@ namespace integration_tests
             // 1. authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
             // 2. merchant gets deleted
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -433,14 +449,19 @@ namespace integration_tests
             }
 
             // 3. invoke get payment
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.GetAsync($"/api/payment/{Guid.NewGuid().ToString()}");
 
             // Assert
 
             // - HTTP
             Assert.Equal("Forbidden", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Merchant is not authorized to get payment", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-UNAUTHORIZED_ACCESS",
+                Message = "Merchant is not authorized to get payment"
+            }), JsonConvert.SerializeObject(apiError));
         }
     }
 }

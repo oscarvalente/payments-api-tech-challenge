@@ -1,12 +1,13 @@
 # README #
 
-This README explains how to setup the tech challenge and use it.
+This README explains how to setup the tech challenge and run it.
 
 ### Project structure
-The project uses has 3 root folders:
-* `payments-api` - source code
-* `unit-tests`
-* `integration-tests`
+The project has 3 root folders:
+
+1. payments-api - source code
+2. unit-tests
+3. integration-tests
 
 ### How do I get set up? ###
 
@@ -22,12 +23,12 @@ The project uses has 3 root folders:
 #### General architecture
 
 The following image illustrates the system high-level architecture. The Acquiring Bank part would be a possible first-phase solution that is represented by the CKO simulator currently.
-![paymentsapiarc](./docs/payments-tech-challenge-UML.drawio.png "Architecture")
+![paymentsapiarc](./payments-api/docs/payments-tech-challenge-UML.drawio.png "Architecture")
 
 #### Domain-driven architecture
 
 The image below represents the core components of the system and its layered structure.
-![domainarch](./docs/domains.drawio.png "Authentication domain (merchants)")
+![domainarch](./payments-api/docs/domains.drawio.png "Authentication domain (merchants)")
 
 ### Required tools
 * dotnet
@@ -41,19 +42,26 @@ The image below represents the core components of the system and its layered str
 2. in mysql environment run `GRANT ALL PRIVELEGES ON *.* TO 'oscar'@'localhost'` - this privileges should be refined
 
 #### Install
-* run `sh tools/build.sh`
+* run `cd payments-api; sh tools/build.sh`
 * dotnet tool install --global dotnet-counters (to view metrics only)
 
 #### Run
-* run `dotnet run payments-api`
+* run `cd payments-api; dotnet run payments-api`
 
 #### Test
-* import Postman collection `tools/3rd-party-integrations/PaymentsAPI.postman_collection` to Postman
-    1. /sign-up
-    2. /sign-in
-    3. before invoke `/api/pay` please update merchant to verified state - using script `aux/verify-merchant.sql`
-    4. /pay
-    5. /payment/:paymentUUID
+* import Postman collection `./payments-api/tools/3rd-party-integrations/PaymentsAPI.postman_collection` to Postman:
+    1. /api/auth/sign-up (POST)
+    2. /api/auth/sign-in (POST)
+    3. before invoke `/api/pay` please update merchant to verified state (by corresponding Id)  - using script `aux/verify-merchant.sql`
+    4. /api/pay (POST)
+    5. /api/payment/:paymentUUID (GET)
+* For simulation purposes payment redirect is done the following way:
+    * Bank A:
+        * A payment whose card **starts with** `1234-12` is forwarded to bank **A**;
+        * if card **finishes with digit 0 to 4** the payment gets **accepted**, otherwise it gets rejected;
+    * Bank B:
+        * A payment whose card **starts with** `1234-56` is forwarded to bank **B**;
+        * if card **finishes with digit 0** the payment gets **accepted**, otherwise it gets rejected.
 
 #### Assumptions
 * Payments API require authentication
@@ -81,18 +89,25 @@ The passage of payments data to the banks is done via simulation within the solu
 In addition to the Postman collection, Swagger UI is available in `http://localhost:13401/swagger/` with the endpoints collection.
 
 ##### Metrics logger
-Start the Web API process and:
+Start the Web API process, change to `./payments-api/` directory and:
+
 1. get the pid - `lsof -i :13401 | grep payments -h -m 1 | awk '{print $2}'`
+
 2. capture metrics (perform some requests):
     
-    2.1 to screen: `dotnet-counters monitor --process-id <pid> --counters PaymentsAPI.EventCounter.RequestProcessingTime`
+    i.
+        to screen: `dotnet-counters monitor --process-id <pid> --counters PaymentsAPI.EventCounter.RequestProcessingTime`
 
-    2.2 to file: `dotnet-counters collect --process-id <pid> --format json -o diagnostics.json --counters PaymentsAPI.EventCounter.RequestProcessingTime`
-
-    2.2.1 View captured metrics `cat diagnostics.json | jq`
+    ii.
+        to file: `dotnet-counters collect --process-id <pid> --format json -o diagnostics.json --counters PaymentsAPI.EventCounter.RequestProcessingTime`
+        
+            View captured metrics `cat diagnostics.json | jq`
 
 #### Possible improvements
-* The API errors should be transformed into decent JSON responses with an util class, like an error builder, so that consumers can get a more structured consumable response.
-* AuthenticationController should have input validations before calling service.
-* Containerization with docker.
+
+* Client API errors should be not be mixed with API Errors. Changes in API errors (even a slight refactor in a enumeration name) shouldn't provoke breaking changs in the client;
+* Review mysql user privileges;
+* Remove password from code and scripts and use a secure storage;
+* AuthenticationController should have input validations before calling any services layer;
+* Containerization with docker;
 * Extend and refine metrics.

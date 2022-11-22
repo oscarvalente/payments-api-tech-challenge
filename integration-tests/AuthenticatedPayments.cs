@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,6 +6,7 @@ using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace integration_tests
 {
@@ -76,7 +78,12 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Failed to authenticate", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-UNAUTHORIZED_ACCESS",
+                Message = "Failed to authenticate"
+            }), JsonConvert.SerializeObject(apiError));
         }
 
         /// <summary>
@@ -133,7 +140,7 @@ namespace integration_tests
             // 1. authenticate
             var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
 
-            string token = await signinResponse.Content.ReadAsStringAsync();
+            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
             // 2. merchant gets deleted
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -147,14 +154,19 @@ namespace integration_tests
             }
 
             // 3. invoke payment
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
             var paymentResponse = await httpClient.PostAsync($"/api/pay", paymentBody);
 
             // Assert
 
             // - HTTP
             Assert.Equal("Forbidden", paymentResponse.StatusCode.ToString());
-            Assert.Equal("Merchant is not authorized to issue payment", await paymentResponse.Content.ReadAsStringAsync());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-UNAUTHORIZED_ACCESS",
+                Message = "Merchant is not authorized to issue payment"
+            }), JsonConvert.SerializeObject(apiError));
         }
     }
 }

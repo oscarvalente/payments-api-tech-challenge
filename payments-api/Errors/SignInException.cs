@@ -3,13 +3,14 @@ namespace PaymentsAPI.Errors
 
     public enum SignInExceptionCode
     {
-        MERCHANT_NOT_VERIFIED
+        MERCHANT_NOT_VERIFIED,
+        INVALID_CREDENTIALS
     }
 
     [Serializable]
     public class SignInException : Exception
     {
-        private SignInExceptionCode code { get; set; }
+        public SignInExceptionCode code { get; set; }
 
         public SignInException(string message, SignInExceptionCode code)
         : base(message)

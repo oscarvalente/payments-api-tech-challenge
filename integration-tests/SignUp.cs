@@ -1,10 +1,12 @@
-﻿using System.Text;
+﻿using System.Net.Http.Json;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
+using PaymentsAPI.Services.Responses;
 
 namespace integration_tests
 {
@@ -80,7 +82,12 @@ namespace integration_tests
 
             // Assert
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid registration: Invalid username format", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-INVALID_USERNAME",
+                Message = "Invalid registration: Invalid username format"
+            }), JsonConvert.SerializeObject(apiError));
             Assert.Null(merchant);
         }
 
@@ -111,7 +118,12 @@ namespace integration_tests
             // Assert
 
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid registration: Invalid password format", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-INVALID_PASSWORD",
+                Message = "Invalid registration: Invalid password format"
+            }), JsonConvert.SerializeObject(apiError));
             Assert.Null(merchant);
         }
 
@@ -151,7 +163,12 @@ namespace integration_tests
             // Assert
 
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            Assert.Equal("Invalid registration: User already exists", await response.Content.ReadAsStringAsync());
+            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Code = "E-USER_ALREADY_EXISTS",
+                Message = "Invalid registration: User already exists"
+            }), JsonConvert.SerializeObject(apiError));
         }
     }
 }

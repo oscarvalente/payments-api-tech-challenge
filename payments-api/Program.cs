@@ -4,6 +4,7 @@ using PaymentsAPI.DataAccess;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Services;
 using PaymentsAPI.Services.Metrics;
+using PaymentsAPI.Services.Responses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<IMerchant, Merchants>();
 builder.Services.AddSingleton<IToken, Token>();
 builder.Services.AddSingleton<IBankMatcher, BankMatcher>();
 builder.Services.AddSingleton<ICurrencyValidator, CurrencyValidator>();
+builder.Services.AddSingleton<IAPIResponseBuilder, APIReponseBuilder>();
 // data access
 builder.Services.AddScoped<IMerchantData, MerchantData>();
 builder.Services.AddScoped<IPaymentData, PaymentData>();
