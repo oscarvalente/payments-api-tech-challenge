@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.RegularExpressions;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
@@ -10,21 +9,15 @@ namespace PaymentsAPI.Controllers.Payments
 {
     [Route("api")]
     [ApiController]
+    [Produces("application/json")]
     public class PaymentController : Controller
     {
-        const string CARD_HOLDER_REGEX = @"^([A-Za-z]{2,}\s[A-Za-z]+){1,3}$";
-        private Regex cardHolderFormat = new Regex(CARD_HOLDER_REGEX);
-        const string PAN_REGEX = @"^(\d{4}\-){3}\d{4}$";
-        private Regex panFormat = new Regex(PAN_REGEX);
-        const string CVV_REGEX = @"^[\d]{3}$";
-        private Regex cvvFormat = new Regex(CVV_REGEX);
-        const string CURRENCY_CODE_REGEX = @"^[A-Za-z]{3}$";
-        private Regex currencyCodeFormat = new Regex(CURRENCY_CODE_REGEX);
         private readonly IToken tokenService;
         private readonly ICurrencyValidator currencyValidatorService;
         private readonly IMerchant merchantService;
         private readonly IPayment payments;
         private readonly IAPIResponseBuilder apiResponseBuilder;
+        private readonly IMediator mediator;
 
 
         public PaymentController(IToken _tokenService, ICurrencyValidator _currencyValidatorService, IMerchant _merchantService, IPayment _payments, IAPIResponseBuilder _apiResponseBuilder)
@@ -39,6 +32,8 @@ namespace PaymentsAPI.Controllers.Payments
         [HttpPost("pay")]
         public async Task<ActionResult<JsonContent>> Pay(PaymentModel request)
         {
+
+            // mediator.Send(request);
             var paymentRef = Guid.NewGuid().ToString();
 
             string username = null;
@@ -74,7 +69,7 @@ namespace PaymentsAPI.Controllers.Payments
 
                 string refUuid = payments.pay(merchant, paymentRef, request.cardHolder, request.pan.Replace("-", ""), DateOnly.Parse(request.expiryDate), request.cvv, request.amount, request.currencyCode);
 
-                return Ok(apiResponseBuilder.buildPaymentRefResponse(refUuid));
+                return Created($"payment:{refUuid}", apiResponseBuilder.buildPaymentRefResponse(refUuid));
             }
             // validation of input
             catch (FormatException e)
@@ -84,6 +79,7 @@ namespace PaymentsAPI.Controllers.Payments
             // validation of business logic
             catch (PaymentException e)
             {
+                // TODO: map internal errors to client errors in middleware
                 if (e.code == PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK)
                 {
                     return BadRequest(apiResponseBuilder.buildClientErrorWithPaymentRef(e.code.ToString(), $"Payment rejected due to: {e.Message} - reference {e.paymentRef}", e.paymentRef));

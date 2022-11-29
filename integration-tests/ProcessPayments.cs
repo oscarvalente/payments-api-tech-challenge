@@ -80,7 +80,7 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("OK", paymentResponse.StatusCode.ToString());
+            Assert.Equal("Created", paymentResponse.StatusCode.ToString());
             var result = await paymentResponse.Content.ReadFromJsonAsync<PaymentRefResponse>();
 
             Assert.True(Guid.TryParse(result.PaymentRef, out var _));
@@ -230,7 +230,7 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("OK", paymentResponse.StatusCode.ToString());
+            Assert.Equal("Created", paymentResponse.StatusCode.ToString());
             var result = await paymentResponse.Content.ReadFromJsonAsync<PaymentRefResponse>();
             Assert.True(Guid.TryParse(result.PaymentRef, out var _));
 
