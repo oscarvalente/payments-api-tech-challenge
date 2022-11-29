@@ -8,7 +8,7 @@ namespace PaymentsAPI.Controllers.Authentication
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthenticationController : Controller
+    public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration configuration;
         private readonly ISignUp signUpService;
@@ -26,17 +26,29 @@ namespace PaymentsAPI.Controllers.Authentication
         }
 
         [HttpPost("sign-up")]
-        public async Task<ActionResult<JsonContent>> SignUp(AuthenticationPayload request)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<JsonContent>> SignUp(AuthenticationModel request)
         {
+            if (!ModelState.IsValid)
+            {
+                var code = string.Join("|", ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.Exception));
+                return BadRequest(apiResponseBuilder.buildInputValidationError($"VSU-{code}", ModelState));
+            }
+
             Merchant result = null;
             try
             {
+
                 result = signUpService.signUpMerchant(request.username, request.password);
 
                 if (result == null)
                 {
                     return StatusCode(500,
-                    Json(apiResponseBuilder.buildInternalError("UNKNOWN", "Unknown error while signing-up merchant")));
+                    new JsonResult(apiResponseBuilder.buildInternalError("UNKNOWN", "Unknown error while signing-up merchant")));
                 }
 
                 return NoContent();
@@ -49,13 +61,23 @@ namespace PaymentsAPI.Controllers.Authentication
             catch (Exception exception)
             {
                 return StatusCode(500,
-                    Json(apiResponseBuilder.buildInternalError("UNKNOWN", "Unknown error while signing-up merchant")));
+                    new JsonResult(apiResponseBuilder.buildInternalError("UNKNOWN", "Unknown error while signing-up merchant")));
             }
         }
 
         [HttpPost("sign-in")]
-        public async Task<ActionResult<JsonContent>> SignIn(AuthenticationPayload request)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<JsonContent>> SignIn(AuthenticationModel request)
         {
+            if (!ModelState.IsValid)
+            {
+                var code = string.Join("|", ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.Exception));
+                return BadRequest(apiResponseBuilder.buildInputValidationError($"VSI-{code}", ModelState));
+            }
             try
             {
                 if (!signInService.signInMerchant(request.username, request.password))

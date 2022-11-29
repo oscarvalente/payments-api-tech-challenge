@@ -94,18 +94,16 @@ namespace integration_tests
         public async Task Payment_Fail_MerchantDeletedAfterAuth()
         {
             // Arrange
-            Payment payment = null;
             Merchant merchant = null;
+
+            string username = "usernameFailAuth2";
+            string password = "TestPassword1!";
+
             string cardHolder = "Oscar Valente";
             string pan = "1234-1234-1234-9999";
-            string username = "usernameFailAuth2";
-            string password = "Password01!";
-
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsAPIDbContext>();
-
-                // 1. create customer
                 Password.CreatePasswordHash(password, out string passwordHash, out string passwordSalt);
                 merchant = new Merchant
                 {
@@ -116,14 +114,14 @@ namespace integration_tests
                     IsVerified = true
                 };
                 dbContext.Merchants.Add(merchant);
-
                 dbContext.SaveChanges();
             }
 
-            Dictionary<string, string> signinJsonValues = new Dictionary<string, string>();
-            signinJsonValues.Add("username", username);
-            signinJsonValues.Add("password", password);
-            StringContent signinBody = new StringContent(JsonConvert.SerializeObject(signinJsonValues), UnicodeEncoding.UTF8, "application/json");
+            Dictionary<string, string> signInJsonValues = new Dictionary<string, string>();
+            signInJsonValues.Add("username", username);
+            signInJsonValues.Add("password", password);
+
+            StringContent signInReqBody = new StringContent(JsonConvert.SerializeObject(signInJsonValues), UnicodeEncoding.UTF8, "application/json");
 
             Dictionary<string, string> paymentJsonValues = new Dictionary<string, string>();
             paymentJsonValues.Add("cvv", "323");
@@ -137,10 +135,12 @@ namespace integration_tests
 
             // Act
 
-            // 1. authenticate
-            var signinResponse = await httpClient.PostAsync($"/api/auth/sign-in", signinBody);
+            // - HTTP
+            var signInResponse = await httpClient.PostAsync("/api/auth/sign-in", signInReqBody);
 
-            var tokenReponse = await signinResponse.Content.ReadFromJsonAsync<TokenResponse>();
+            // Assert
+            // // 1. authenticate
+            var tokenBody = await signInResponse.Content.ReadFromJsonAsync<TokenResponse>();
 
             // 2. merchant gets deleted
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -154,7 +154,7 @@ namespace integration_tests
             }
 
             // 3. invoke payment
-            httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
+            httpClient.DefaultRequestHeaders.Add("Authorization", tokenBody.Token);
             var paymentResponse = await httpClient.PostAsync($"/api/pay", paymentBody);
 
             // Assert

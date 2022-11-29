@@ -37,7 +37,7 @@ namespace PaymentsAPI.Controllers.Payments
         }
 
         [HttpPost("pay")]
-        public async Task<ActionResult<JsonContent>> Pay(PaymentsPayload request)
+        public async Task<ActionResult<JsonContent>> Pay(PaymentModel request)
         {
             var paymentRef = Guid.NewGuid().ToString();
 

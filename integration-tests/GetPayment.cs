@@ -31,7 +31,7 @@ namespace integration_tests
             Merchant merchant = null;
             Payment payment = null;
             string username = "usernameGetPaym1";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -101,7 +101,7 @@ namespace integration_tests
             Merchant merchant = null;
             Payment payment = null;
             string username = "usernameGetPaym2";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -177,7 +177,7 @@ namespace integration_tests
             Payment payment = null;
             string usernameA = "usernameGetPaymF1";
             string usernameB = "usernameGetPaymF2";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -260,7 +260,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameGetPaymF3";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -316,7 +316,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameGetPaymF3b";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -379,7 +379,7 @@ namespace integration_tests
             string cardHolder = "Oscar Valente";
             string pan = "1234-1234-1234-9999";
             string username = "usernameGetPaymF4";
-            string password = "Password01!";
+            string password = "TestPassword1!";
             string paymentRef = Guid.NewGuid().ToString();
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())

@@ -31,7 +31,7 @@ namespace integration_tests
             string cardHolder = "Oscar Valente";
             string pan = "1234-1234-1234-0004"; // AcquiringBankA - pan starts with 1234-12 & ends with 0-4 digit
             string username = "usernameSuccess1";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -106,7 +106,7 @@ namespace integration_tests
             string cardHolder = "Oscar Valente";
             string pan = "1234-1234-1234-0008"; // AcquiringBankA - pan starts with 1234-12 but ends with 8
             string username = "usernameFail1";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -181,7 +181,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-5634-1234-0000"; // AcquiringBankB - pan starts with 1234-56 & ends with 0 digit
             string username = "usernameSuccess2";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -253,7 +253,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-5634-1234-0003"; // AcquiringBankA - pan starts with 1234-56 but does not end with 0
             string username = "usernameFail2";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -327,7 +327,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-0034-1234-0003"; // AcquiringBank not found
             string username = "usernameFail3";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {

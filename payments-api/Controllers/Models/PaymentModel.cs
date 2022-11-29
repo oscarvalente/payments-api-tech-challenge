@@ -1,6 +1,6 @@
 namespace PaymentsAPI.Controllers.Payments
 {
-    public class PaymentsPayload
+    public class PaymentModel
     {
         public string cardHolder { get; set; } = string.Empty;
         public string pan { get; set; } = string.Empty;

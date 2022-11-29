@@ -39,7 +39,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -116,7 +116,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -192,7 +192,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -270,7 +270,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -347,7 +347,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -422,7 +422,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,
@@ -503,7 +503,7 @@ namespace unit_tests
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers["Authorization"] = "token";
 
-            var payload = new PaymentsPayload
+            var payload = new PaymentModel
             {
                 cardHolder = cardHolder,
                 pan = pan,

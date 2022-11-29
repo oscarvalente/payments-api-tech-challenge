@@ -58,8 +58,9 @@ namespace integration_tests
             var response = await httpClient.PostAsync("/api/auth/sign-in", body);
 
             // Assert
+            var tokenBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
             Assert.Equal("OK", response.StatusCode.ToString());
-            Assert.NotEmpty(await response.Content.ReadAsStringAsync());
+            Assert.NotEmpty(JsonConvert.SerializeObject(tokenBody.Token));
         }
 
         [Fact]

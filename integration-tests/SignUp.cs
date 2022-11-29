@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using System.ComponentModel;
+using System.Net.Http.Json;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -82,12 +84,12 @@ namespace integration_tests
 
             // Assert
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            var apiError = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_USERNAME",
-                Message = "Invalid registration: Invalid username format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "username",
+                Value = new string[1] { "Username must contain only alphanumeric characters with minimum of 8 to maximum of 20 length" }
+            }), JsonConvert.SerializeObject(apiError.Errors.ToList().ElementAt(0)));
             Assert.Null(merchant);
         }
 
@@ -118,12 +120,12 @@ namespace integration_tests
             // Assert
 
             Assert.Equal("BadRequest", response.StatusCode.ToString());
-            var apiError = await response.Content.ReadFromJsonAsync<APIError>();
+            var apiError = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_PASSWORD",
-                Message = "Invalid registration: Invalid password format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "password",
+                Value = new string[1] { "Password must contain at least 12 characters, alphanumeric and special characters" }
+            }), JsonConvert.SerializeObject(apiError.Errors.ToList().ElementAt(0)));
             Assert.Null(merchant);
         }
 

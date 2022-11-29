@@ -30,7 +30,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameInput1";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -94,7 +94,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameInput2";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -159,7 +159,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-1234-1234-9999";
             string username = "usernameInput3";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -225,7 +225,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-1234-1234-9999";
             string username = "usernameInput4";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -291,7 +291,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-1234-1234-9999";
             string username = "usernameInput5";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -357,7 +357,7 @@ namespace integration_tests
             Merchant merchant = null;
             string pan = "1234-1234-1234-9999";
             string username = "usernameInput6";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -446,7 +446,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameInput7";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
@@ -510,7 +510,7 @@ namespace integration_tests
             // Arrange
             Merchant merchant = null;
             string username = "usernameInput8";
-            string password = "Password01!";
+            string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {

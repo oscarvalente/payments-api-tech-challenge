@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 namespace PaymentsAPI.Services.Responses
 {
     public class APIReponseBuilder : IAPIResponseBuilder
@@ -17,6 +19,15 @@ namespace PaymentsAPI.Services.Responses
             {
                 Code = $"E-{type}",
                 Message = message,
+            };
+        }
+
+        public APIInputValidationError buildInputValidationError(string type, ModelStateDictionary model)
+        {
+            return new APIInputValidationError
+            {
+                Code = $"E-{type}",
+                InputModel = model
             };
         }
 
