@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -79,13 +80,13 @@ namespace integration_tests
             // Assert
 
             // - HTTP
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_CARD_HOLDER",
-                Message = "Invalid card holder format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "cardHolder",
+                Value = new string[1] { "Card holder must have a valid name" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]
@@ -121,7 +122,7 @@ namespace integration_tests
             StringContent signinBody = new StringContent(JsonConvert.SerializeObject(signinJsonValues), UnicodeEncoding.UTF8, "application/json");
 
             Dictionary<string, string> paymentJsonValues = new Dictionary<string, string>();
-            paymentJsonValues.Add("cvv", "Aab");
+            paymentJsonValues.Add("cvv", "333");
             paymentJsonValues.Add("cardHolder", "oscar valente");
             paymentJsonValues.Add("pan", "1234-1234-ZZZZ-ZZZ"); // invalid PAN - ERROR
             paymentJsonValues.Add("expiryDate", "31-12-2032");
@@ -143,13 +144,13 @@ namespace integration_tests
             // Assert
 
             // - HTTP
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_CARD_NUMBER",
-                Message = "Invalid card number format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "pan",
+                Value = new string[1] { "PAN must be in format xxxx-xxxx-xxxx-xxxx" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]
@@ -209,13 +210,13 @@ namespace integration_tests
             // Assert
 
             // - HTTP
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_EXPIRY_DATE",
-                Message = "Invalid expiry date"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "expiryDate",
+                Value = new string[1] { "Date must be at least today" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]
@@ -275,12 +276,12 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_CARD_EXPIRED",
-                Message = "Card has expired"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "expiryDate",
+                Value = new string[1] { "Date must be at least today" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]
@@ -341,22 +342,26 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_CVV",
-                Message = "Invalid CVV format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "cvv",
+                Value = new string[1] { "CVV must be 3 digits" }
+            }), JsonConvert.SerializeObject(apiError.Errors.ToList().ElementAt(0)));
         }
 
-        [Fact]
-        public async Task Payment_Fail_Input_InvalidAmount_Multiple() // format, range, ...
+        [Theory]
+        [InlineData("AAAA")]
+        [InlineData("0")]
+        [InlineData("100000")]
+        public async Task Payment_Fail_Input_InvalidAmount_Multiple(string amount) // format, range, ...
         {
             // Arrange
             Payment payment = null;
             Merchant merchant = null;
             string pan = "1234-1234-1234-9999";
-            string username = "usernameInput6";
+            DateTime datetime = DateTime.Now;
+            string username = $"usernameInput6{datetime.Millisecond}";
             string password = "TestPassword1!";
 
             using (var scope = testWebApplicationFactory.Services.CreateScope())
@@ -401,43 +406,19 @@ namespace integration_tests
 
             httpClient.DefaultRequestHeaders.Add("Authorization", tokenReponse.Token);
 
-            paymentJsonValues.Add("amount", "AAAA"); // invalid amount - ERROR
-            var paymentResponseFormat = await httpClient.PostAsync($"/api/pay", paymentBody);
-
-            paymentJsonValues.Remove("amount");
-            paymentJsonValues.Add("amount", "100000");
-            var paymentResponseMaxRange = await httpClient.PostAsync($"/api/pay", paymentBody);
-
-            paymentJsonValues.Remove("amount");
-            paymentJsonValues.Add("amount", "0");
-            var paymentResponseMinRange = await httpClient.PostAsync($"/api/pay", paymentBody);
+            paymentJsonValues.Add("amount", amount); // invalid amount - ERROR
+            var paymentResponse = await httpClient.PostAsync($"/api/pay", paymentBody);
 
             // Assert
 
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponseFormat.StatusCode.ToString());
-            var apiError = await paymentResponseFormat.Content.ReadFromJsonAsync<APIError>();
+            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_AMOUNT",
-                Message = "Invalid amount. Only payments up to 500 are allowed"
-            }), JsonConvert.SerializeObject(apiError));
-
-            Assert.Equal("BadRequest", paymentResponseMaxRange.StatusCode.ToString());
-            var apiError2 = await paymentResponseMaxRange.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-INVALID_FORMAT_AMOUNT",
-                Message = "Invalid amount. Only payments up to 500 are allowed"
-            }), JsonConvert.SerializeObject(apiError2));
-
-            Assert.Equal("BadRequest", paymentResponseMinRange.StatusCode.ToString());
-            var apiError3 = await paymentResponseMinRange.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-INVALID_FORMAT_AMOUNT",
-                Message = "Invalid amount. Only payments up to 500 are allowed"
-            }), JsonConvert.SerializeObject(apiError3));
+                Key = "amount",
+                Value = new string[1] { "Invalid amount. Only payments up to 500 are allowed" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]
@@ -496,12 +477,12 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
+            var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Code = "E-INVALID_FORMAT_CURRENCY",
-                Message = "Invalid currency code format"
-            }), JsonConvert.SerializeObject(apiError));
+                Key = "currencyCode",
+                Value = new string[1] { "Currency code must 3 alphabetic characters" }
+            }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
 
         [Fact]

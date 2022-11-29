@@ -67,44 +67,12 @@ namespace PaymentsAPI.Controllers.Payments
 
             try
             {
-                if (!cardHolderFormat.IsMatch(request.cardHolder))
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CARD_HOLDER.ToString(), "Invalid card holder format"));
-                }
-
-                if (!panFormat.IsMatch(request.pan))
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CARD_NUMBER.ToString(), "Invalid card number format"));
-                }
-
-                // TODO: improve validation using JSON schema or so...
-                DateOnly expiryDate = DateOnly.Parse(request.expiryDate);
-                if (expiryDate.CompareTo(DateOnly.FromDateTime(DateTime.Now)) < 0)
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_CARD_EXPIRED.ToString(), "Card has expired"));
-                }
-
-                if (!cvvFormat.IsMatch(request.cvv))
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CVV.ToString(), "Invalid CVV format"));
-                }
-
-                if (request.amount <= 0 || request.amount > 500)
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_AMOUNT.ToString(), "Invalid amount. Only payments up to 500 are allowed"));
-                }
-
-                if (!currencyCodeFormat.IsMatch(request.currencyCode))
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_CURRENCY.ToString(), "Invalid currency code format"));
-                }
-
                 if (!currencyValidatorService.isCurrencySupported(request.currencyCode))
                 {
                     return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.CURRENCY_NOT_SUPPORTED.ToString(), "Currency code is not supported"));
                 }
 
-                string refUuid = payments.pay(merchant, paymentRef, request.cardHolder, request.pan.Replace("-", ""), expiryDate, request.cvv, request.amount, request.currencyCode);
+                string refUuid = payments.pay(merchant, paymentRef, request.cardHolder, request.pan.Replace("-", ""), DateOnly.Parse(request.expiryDate), request.cvv, request.amount, request.currencyCode);
 
                 return Ok(apiResponseBuilder.buildPaymentRefResponse(refUuid));
             }

@@ -31,7 +31,7 @@ namespace integration_tests
             // Arrange
 
             DateTime datetime = DateTime.Now;
-            string username = $"tmerchant{datetime.Month.ToString()}{datetime.Hour.ToString()}{datetime.Minute.ToString()}";
+            string username = $"testmerchant1";
             string password = "TestPassword123!";
             Dictionary<string, string> jsonValues = new Dictionary<string, string>();
             jsonValues.Add("username", username);
@@ -53,8 +53,8 @@ namespace integration_tests
             }
 
             // Assert
-            Assert.Equal("NoContent", response.StatusCode.ToString());
-            Assert.Equal("", await response.Content.ReadAsStringAsync());
+            Assert.Equal("Created", response.StatusCode.ToString());
+            Assert.Equal("testmerchant1", await response.Content.ReadAsStringAsync());
             Assert.NotNull(merchant);
         }
 
@@ -108,8 +108,8 @@ namespace integration_tests
         public async Task SignUp_Fail_Password(string password)
         {
             // Arrange
-
-            string username = "validUsername22";
+            DateTime datetime = DateTime.Now;
+            string username = $"validUsername22{datetime.Millisecond}";
             Dictionary<string, string> jsonValues = new Dictionary<string, string>();
             jsonValues.Add("username", username);
             jsonValues.Add("password", password);
@@ -127,7 +127,6 @@ namespace integration_tests
             }
 
             // Assert
-
             Assert.Equal("BadRequest", response.StatusCode.ToString());
             var apiError = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new

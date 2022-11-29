@@ -242,84 +242,6 @@ namespace unit_tests
         }
 
         [Theory]
-        [InlineData("Oscar")]
-        [InlineData("Oscar ")]
-        [InlineData("Oscar 12345")]
-        [InlineData("Oscar V!")]
-        public async Task Payment_Fail_CardHolder_Format(string cardHolder)
-        {
-            // Arrange
-            string username = "username";
-            string pan = "1234-1234-1234-1234";
-            var paymentRef = "1234";
-            var expiryDate = "01-01-2023";
-            var cvv = "323";
-            var amount = 55;
-            var currencyCode = "EUR";
-            Merchant merchant = new Merchant
-            {
-                Id = 1,
-                Username = "merchantA",
-                Address = "address",
-                PasswordHash = "default",
-                PasswordSalt = "default",
-                IsVerified = true,
-                CreatedAt = DateTime.Now
-            };
-
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Authorization"] = "token";
-
-            var payload = new PaymentModel
-            {
-                cardHolder = cardHolder,
-                pan = pan,
-                expiryDate = expiryDate,
-                cvv = cvv,
-                amount = amount,
-                currencyCode = currencyCode
-            };
-
-            var mockToken = new Mock<IToken>();
-            mockToken.Setup(t => t.verifyToken("token"))
-            .Returns(username);
-            var mockCurrencyValidator = new Mock<ICurrencyValidator>();
-            mockCurrencyValidator.Setup(cv => cv.isCurrencySupported("eur"))
-            .Returns(false);
-            var mockMerchantService = new Mock<IMerchant>();
-            mockMerchantService.Setup(ms => ms.getMerchantByUsername(username))
-            .Returns(merchant);
-            var mockPaymentService = new Mock<IPayment>();
-            mockPaymentService.Setup(ps => ps.pay(merchant, paymentRef, payload.cardHolder, "1234123412341234", DateOnly.Parse(payload.expiryDate), payload.cvv, payload.amount, payload.currencyCode))
-            .Returns("");
-            var mockAPIResponseBuilder = new Mock<IAPIResponseBuilder>();
-            mockAPIResponseBuilder.Setup(arb => arb.buildClientError(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string code, string msg) => new APIError
-            {
-                Code = code,
-                Message = msg
-            });
-            var controller = new PaymentController(mockToken.Object, mockCurrencyValidator.Object, mockMerchantService.Object, mockPaymentService.Object, mockAPIResponseBuilder.Object)
-            {
-                ControllerContext = new ControllerContext()
-                {
-                    HttpContext = httpContext
-                }
-            };
-
-            // Act
-            var result = (await controller.Pay(payload)).Result as ObjectResult;
-
-            // Assert
-            Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "INVALID_FORMAT_CARD_HOLDER",
-                Message = "Invalid card holder format"
-            }), JsonConvert.SerializeObject(result.Value));
-        }
-
-        [Theory]
         [InlineData("invalidDate")]
         [InlineData("01")]
         [InlineData("a2032")]
@@ -361,8 +283,8 @@ namespace unit_tests
             mockToken.Setup(t => t.verifyToken("token"))
             .Returns(username);
             var mockCurrencyValidator = new Mock<ICurrencyValidator>();
-            mockCurrencyValidator.Setup(cv => cv.isCurrencySupported("eur"))
-            .Returns(false);
+            mockCurrencyValidator.Setup(cv => cv.isCurrencySupported(currencyCode))
+            .Returns(true);
             var mockMerchantService = new Mock<IMerchant>();
             mockMerchantService.Setup(ms => ms.getMerchantByUsername(username))
             .Returns(merchant);

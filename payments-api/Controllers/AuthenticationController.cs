@@ -51,7 +51,7 @@ namespace PaymentsAPI.Controllers.Authentication
                     new JsonResult(apiResponseBuilder.buildInternalError("UNKNOWN", "Unknown error while signing-up merchant")));
                 }
 
-                return NoContent();
+                return Created($"merchant:{result.Id}", result.Username);
             }
             catch (SignUpException exception)
             {
