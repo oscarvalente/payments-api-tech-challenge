@@ -58,13 +58,17 @@ namespace integration_tests
             Assert.NotNull(merchant);
         }
 
-        [Fact]
-        public async Task SignUp_Fail_Username()
+        [Theory]
+        [InlineData("oscar")]
+        [InlineData("Oscar ")]
+        [InlineData("Oscar 12345")]
+        [InlineData("!Oscar!")]
+        [InlineData("12345")]
+        public async Task SignUp_Fail_Username(string username)
         {
             // Arrange
 
             DateTime datetime = DateTime.Now;
-            string username = "123";
             string password = "TestPassword123!";
             Dictionary<string, string> jsonValues = new Dictionary<string, string>();
             jsonValues.Add("username", username);
@@ -93,14 +97,19 @@ namespace integration_tests
             Assert.Null(merchant);
         }
 
-        [Fact]
-        public async Task SignUp_Fail_Password()
+        [Theory]
+        [InlineData("invalidPassw1")]
+        [InlineData("invalidPass word")]
+        [InlineData("1234!")]
+        [InlineData("pass")]
+        [InlineData("Password1")]
+        [InlineData("Passwo1!")]
+        [InlineData("Passwo1!!!WWWWWWWWWWWWWWW")]
+        public async Task SignUp_Fail_Password(string password)
         {
             // Arrange
 
-            DateTime datetime = DateTime.Now;
             string username = "validUsername22";
-            string password = "invalidPassw1";
             Dictionary<string, string> jsonValues = new Dictionary<string, string>();
             jsonValues.Add("username", username);
             jsonValues.Add("password", password);
