@@ -84,7 +84,7 @@ namespace integration_tests
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "cardHolder",
+                Key = "CardHolder",
                 Value = new string[1] { "Card holder must have a valid name" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -148,7 +148,7 @@ namespace integration_tests
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "pan",
+                Key = "Pan",
                 Value = new string[1] { "PAN must be in format xxxx-xxxx-xxxx-xxxx" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -214,7 +214,7 @@ namespace integration_tests
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "expiryDate",
+                Key = "ExpiryDate",
                 Value = new string[1] { "Date must be at least today" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -279,7 +279,7 @@ namespace integration_tests
             var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "expiryDate",
+                Key = "ExpiryDate",
                 Value = new string[1] { "Date must be at least today" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -345,7 +345,7 @@ namespace integration_tests
             var apiError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "cvv",
+                Key = "Cvv",
                 Value = new string[1] { "CVV must be 3 digits" }
             }), JsonConvert.SerializeObject(apiError.Errors.ToList().ElementAt(0)));
         }
@@ -416,7 +416,7 @@ namespace integration_tests
             var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "amount",
+                Key = "Amount",
                 Value = new string[1] { "Invalid amount. Only payments up to 500 are allowed" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -480,7 +480,7 @@ namespace integration_tests
             var validationError = await paymentResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
             Assert.Equal(JsonConvert.SerializeObject(new
             {
-                Key = "currencyCode",
+                Key = "CurrencyCode",
                 Value = new string[1] { "Currency code must 3 alphabetic characters" }
             }), JsonConvert.SerializeObject(validationError.Errors.ToList().ElementAt(0)));
         }
@@ -541,12 +541,8 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-CURRENCY_NOT_SUPPORTED",
-                Message = "Currency code is not supported"
-            }), JsonConvert.SerializeObject(apiError));
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            Assert.Equal("Currency code is not supported", apiError.Detail);
         }
     }
 }

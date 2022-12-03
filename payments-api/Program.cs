@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PaymentsAPI.Middlewares;
 using PaymentsAPI.DataAccess;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Services;
 using PaymentsAPI.Services.Metrics;
 using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Extensions;
+using PaymentsGatewayApi.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +34,17 @@ builder.Services.AddSingleton<IAPIResponseBuilder, APIReponseBuilder>();
 // data access
 builder.Services.AddScoped<IMerchantData, MerchantData>();
 builder.Services.AddScoped<IPaymentData, PaymentData>();
+builder.Services.AddScoped<IRequesterMerchant, RequesterMerchant>();
 
+// register deps
+builder.Services.RegisterRequestHandlers();
+
+builder.Services.AddProblemDetailsMapper();
 builder.Services.AddControllers(options => options.Filters.Add<RequestProcessingTimeLoggerFilterAttribute>());
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -55,6 +64,9 @@ else
     app.UseHsts();
 }
 
+
+app.UseProblemDetailsMapper();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -64,6 +76,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseAuthenticationValidator();
+
+// app.UseAPIResponseMapper();
 
 app.Run();
 

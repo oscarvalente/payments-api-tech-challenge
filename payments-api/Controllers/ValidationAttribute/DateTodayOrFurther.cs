@@ -5,7 +5,7 @@ public class DateTodayOrFurther : ValidationAttribute
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
         DateOnly expiryDate;
-        DateOnly.TryParse(value?.ToString(), out expiryDate);
+        DateOnly.TryParse((string)value, out expiryDate);
         if (expiryDate.CompareTo(DateOnly.FromDateTime(DateTime.Now)) >= 0)
         {
             return ValidationResult.Success;

@@ -246,12 +246,8 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-NOT_FOUND",
-                Message = "Payment not found"
-            }), JsonConvert.SerializeObject(apiError));
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            Assert.Equal("Payment retrieval not authorized", apiError.Detail);
         }
 
         [Fact]
@@ -302,12 +298,8 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-NOT_FOUND",
-                Message = "Payment not found"
-            }), JsonConvert.SerializeObject(apiError));
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            Assert.Equal("Payment retrieval not authorized", apiError.Detail);
         }
 
         [Fact]
@@ -357,13 +349,9 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-INVALID_FORMAT_PAYMENT_REF",
-                Message = "Invalid payment reference format"
-            }), JsonConvert.SerializeObject(apiError));
+            Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            Assert.Equal("Payment retrieval not authorized", apiError.Detail);
         }
 
         /// <summary>
@@ -455,13 +443,9 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("Forbidden", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<APIError>();
-            Assert.Equal(JsonConvert.SerializeObject(new
-            {
-                Code = "E-UNAUTHORIZED_ACCESS",
-                Message = "Merchant is not authorized to get payment"
-            }), JsonConvert.SerializeObject(apiError));
+            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            Assert.Equal("Merchant is not authorized to do this operation", apiError.Detail);
         }
     }
 }

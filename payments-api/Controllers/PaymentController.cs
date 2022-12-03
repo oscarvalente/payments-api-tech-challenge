@@ -1,6 +1,4 @@
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Services;
 using PaymentsAPI.Services.Responses;
@@ -10,163 +8,45 @@ namespace PaymentsAPI.Controllers.Payments
     [Route("api")]
     [ApiController]
     [Produces("application/json")]
-    public class PaymentController : Controller
+    public class PaymentController : ApiControllerBase
     {
-        private readonly IToken tokenService;
-        private readonly ICurrencyValidator currencyValidatorService;
-        private readonly IMerchant merchantService;
-        private readonly IPayment payments;
         private readonly IAPIResponseBuilder apiResponseBuilder;
-        private readonly IMediator mediator;
 
-
-        public PaymentController(IToken _tokenService, ICurrencyValidator _currencyValidatorService, IMerchant _merchantService, IPayment _payments, IAPIResponseBuilder _apiResponseBuilder)
+        public PaymentController(IAPIResponseBuilder _apiResponseBuilder)
         {
-            tokenService = _tokenService;
-            currencyValidatorService = _currencyValidatorService;
-            merchantService = _merchantService;
-            payments = _payments;
             apiResponseBuilder = _apiResponseBuilder;
         }
 
         [HttpPost("pay")]
-        public async Task<ActionResult<JsonContent>> Pay(PaymentModel request)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Pay([FromBody] CreatePaymentCommand command)
         {
-
-            // mediator.Send(request);
-            var paymentRef = Guid.NewGuid().ToString();
-
-            string username = null;
             try
             {
-                username = tokenService.verifyToken(HttpContext.Request.Headers["Authorization"]);
-
-                if (username == null)
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
-                }
-            }
-            catch (Exception e)
-            {
-                // for cases where token decode fails
-                return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
-            }
-
-            Merchant merchant = merchantService.getMerchantByUsername(username);
-
-            if (merchant == null)
-            {
-                // cannot use Forbid - relies in auth handler and results in internal server error
-                return StatusCode(403, apiResponseBuilder.buildClientError(PaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Merchant is not authorized to issue payment"));
-            }
-
-            try
-            {
-                if (!currencyValidatorService.isCurrencySupported(request.currencyCode))
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.CURRENCY_NOT_SUPPORTED.ToString(), "Currency code is not supported"));
-                }
-
-                string refUuid = payments.pay(merchant, paymentRef, request.cardHolder, request.pan.Replace("-", ""), DateOnly.Parse(request.expiryDate), request.cvv, request.amount, request.currencyCode);
-
-                return Created($"payment:{refUuid}", apiResponseBuilder.buildPaymentRefResponse(refUuid));
-            }
-            // validation of input
-            catch (FormatException e)
-            {
-                return BadRequest(apiResponseBuilder.buildClientError(PaymentExceptionCode.INVALID_FORMAT_EXPIRY_DATE.ToString(), "Invalid expiry date"));
+                var result = await Mediator.Send(command, CancellationToken.None);
+                return Created(result, apiResponseBuilder.buildPaymentRefResponse(result));
             }
             // validation of business logic
             catch (PaymentException e)
             {
-                // TODO: map internal errors to client errors in middleware
-                if (e.code == PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK)
+                if (e.code == PaymentExceptionCode.ERROR_SAVING_PAYMENT && e.isAccepted)
                 {
-                    return BadRequest(apiResponseBuilder.buildClientErrorWithPaymentRef(e.code.ToString(), $"Payment rejected due to: {e.Message} - reference {e.paymentRef}", e.paymentRef));
+                    return Created(e.paymentRef, apiResponseBuilder.buildPaymentRefResponse(e.paymentRef, "Your payment was accepted but it's still not available for status check"));
                 }
-
-                if (e.code == PaymentExceptionCode.BANK_PAYMENT_PROCESSING)
-                {
-                    return StatusCode(500, apiResponseBuilder.buildClientError("UNKNOWN", $"Payment error: {e.Message}"));
-                }
-                if (e.code == PaymentExceptionCode.ERROR_SAVING_PAYMENT)
-                {
-                    Console.WriteLine($"{e.Message} - payment was {(e.isAccepted ? "accepted" : "rejected")} by bank");
-                    // gracefully handle processed payments by bank but not saved into DB
-                    if (e.isAccepted)
-                    {
-                        return Ok(apiResponseBuilder.buildPaymentRefResponse(e.paymentRef, "Your payment was accepted but it's still not available for status check"));
-                    }
-                    else
-                    {
-                        return BadRequest(apiResponseBuilder.buildClientErrorWithPaymentRef(e.code.ToString(),
-                            $"Payment rejected due to: {e.Message} - reference {e.paymentRef} (payment not yet available for status check)",
-                            e.paymentRef));
-                    }
-                }
-
-                return BadRequest(apiResponseBuilder.buildClientError(e.code.ToString(), $"Payment rejected due to: {e.Message}"));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, apiResponseBuilder.buildInternalError("UNKNOWN", "Unkown error while processing payment"));
+                throw e;
             }
         }
 
         [HttpGet("payment/{paymentRef}")]
-        public async Task<ActionResult<string>> GetPayment(string paymentRef)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetPayment(string paymentRef)
         {
-            try
-            {
-                bool isValid = Guid.TryParse(paymentRef, out var _);
-                if (!isValid)
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.INVALID_FORMAT_PAYMENT_REF.ToString(), "Invalid payment reference format"));
-                }
-            }
-            catch (FormatException)
-            {
-                return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.INVALID_FORMAT_PAYMENT_REF.ToString(), "Invalid payment reference format"));
-            }
-
-            string username = null;
-            try
-            {
-                username = tokenService.verifyToken(HttpContext.Request.Headers["Authorization"]);
-
-                if (username == null)
-                {
-                    return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
-                }
-            }
-            catch (Exception e)
-            {
-                // for cases where token decode fails
-                return BadRequest(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Failed to authenticate"));
-            }
-
-            try
-            {
-                Merchant merchant = merchantService.getMerchantByUsername(username);
-
-                if (merchant == null)
-                {
-                    // cannot use Forbid - relies in auth handler and results in internal server error
-                    return StatusCode(403, apiResponseBuilder.buildClientError(GetPaymentExceptionCode.UNAUTHORIZED_ACCESS.ToString(), "Merchant is not authorized to get payment"));
-                }
-
-                return Json(new PaymentViewModel(payments.getPaymentByRef(paymentRef, merchant)));
-            }
-            catch (PaymentException e)
-            {
-                Console.WriteLine(e.Message);
-                // respond with a 404 regardless of what happened - payments are sensitive data so we don't want to heighten info awareness for possible attacker
-                return NotFound(apiResponseBuilder.buildClientError(GetPaymentExceptionCode.NOT_FOUND.ToString(), $"Payment not found"));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, apiResponseBuilder.buildInternalError("UNKOWN", "Unkown error while processing payment retrieval"));
-            }
+            var result = await Mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, CancellationToken.None);
+            return Ok(result);
         }
     }
 }
