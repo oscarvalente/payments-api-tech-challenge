@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Services;
@@ -8,13 +9,15 @@ namespace PaymentsAPI.Controllers.Payments
     [Route("api")]
     [ApiController]
     [Produces("application/json")]
-    public class PaymentController : ApiControllerBase
+    public class PaymentController : ControllerBase
     {
         private readonly IAPIResponseBuilder apiResponseBuilder;
+        private readonly IMediator mediator;
 
-        public PaymentController(IAPIResponseBuilder _apiResponseBuilder)
+        public PaymentController(IAPIResponseBuilder _apiResponseBuilder, IMediator _mediator)
         {
             apiResponseBuilder = _apiResponseBuilder;
+            mediator = _mediator;
         }
 
         [HttpPost("pay")]
@@ -25,7 +28,7 @@ namespace PaymentsAPI.Controllers.Payments
         {
             try
             {
-                var result = await Mediator.Send(command, CancellationToken.None);
+                var result = await mediator.Send(command, CancellationToken.None);
                 return Created(result, apiResponseBuilder.buildPaymentRefResponse(result));
             }
             // validation of business logic
@@ -45,7 +48,7 @@ namespace PaymentsAPI.Controllers.Payments
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetPayment(string paymentRef)
         {
-            var result = await Mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, CancellationToken.None);
+            var result = await mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, CancellationToken.None);
             return Ok(result);
         }
     }
