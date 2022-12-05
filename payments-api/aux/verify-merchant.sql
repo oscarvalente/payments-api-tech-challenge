@@ -1,3 +1,3 @@
 UPDATE payments_api.merchants
 SET is_verified = true
-WHERE id = 2;
+WHERE id = 1;

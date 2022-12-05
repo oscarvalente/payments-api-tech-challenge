@@ -36,6 +36,17 @@ The image below represents the core components of the system and its layered str
 * mysql server
 * dotnet-counters (to view metrics only)
 
+#### Run with docker
+To run the project with docker:
+1. `docker compose up --build`
+2. Copy the MySql container ip `docker network inspect payments-tech-challenge_payments-network`
+![net_ip](./payments-api/docs/docker_sql_container_ip.png "MySQL network ip")
+3. Change `appsettings.json` Server from localhost to the copied ip
+![net_ip](./payments-api/docs/appsettings_ip.png "App Settings server")
+4. Re-do docker compose
+
+Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be removed.
+
 #### Pre-configuration
 
 1. run `mysql.server start`

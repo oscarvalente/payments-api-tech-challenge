@@ -2,19 +2,24 @@ version: '3'
 
 services:
   db:
-    image: mysql:8.0
+    image: "payments-db"
     container_name: payments-mysql
-    user: root
+    build:
+      context: .
+      dockerfile: Dockerfile.db
     ports:
       - "3306:3306"
+    expose: 
+      - 3306
     volumes:
        - dbdata:/var/lib/mysql
     environment:
       - ACCEPT_EULA=Y
-      - MYSQL_ROOT_PASSWORD=gitCheckout2022!
+      - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_DATABASE=payments_api
       - MYSQL_USER=oscar
       - MSSQL_SA_PASSWORD=gitCheckout2022!
+      - MYSQL_PASSWORD=gitCheckout2022!
     restart: always
     networks:
       - payments-network
@@ -22,11 +27,11 @@ services:
   webapi:
     image: "payments-api"
     container_name: payments-webapi
-    ports:
-      - "13401:13401"
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.api
+    ports:
+      - "13401:13401"
     environment:
       - ASPNETCORE_URLS=http://+:13401
     depends_on:
