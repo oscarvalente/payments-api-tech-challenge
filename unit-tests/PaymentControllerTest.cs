@@ -64,7 +64,7 @@ namespace unit_tests
             var controller = new PaymentController(mockAPIResponseBuilder.Object, mockMediator.Object);
 
             // Act
-            var result = (await controller.Pay(commandPayload));
+            var result = (await controller.Pay(commandPayload, CancellationToken.None));
 
             // Assert
             Assert.IsType<CreatedResult>(result);
@@ -124,7 +124,7 @@ namespace unit_tests
             var controller = new PaymentController(mockAPIResponseBuilder.Object, mockMediator.Object);
 
             // Act
-            var result = (await controller.Pay(commandPayload));
+            var result = (await controller.Pay(commandPayload, CancellationToken.None));
 
             // Assert
             Assert.IsType<CreatedResult>(result);
@@ -184,7 +184,7 @@ namespace unit_tests
             var controller = new PaymentController(mockAPIResponseBuilder.Object, mockMediator.Object);
 
             // Act
-            await Assert.ThrowsAnyAsync<PaymentException>(() => controller.Pay(commandPayload));
+            await Assert.ThrowsAnyAsync<PaymentException>(() => controller.Pay(commandPayload, CancellationToken.None));
         }
 
         [Fact]
@@ -240,7 +240,7 @@ namespace unit_tests
             var controller = new PaymentController(mockAPIResponseBuilder.Object, mockMediator.Object);
 
             // Act
-            await Assert.ThrowsAnyAsync<PaymentException>(() => controller.Pay(commandPayload));
+            await Assert.ThrowsAnyAsync<PaymentException>(() => controller.Pay(commandPayload, CancellationToken.None));
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace unit_tests
             var controller = new PaymentController(mockAPIResponseBuilder.Object, mockMediator.Object);
 
             // Act
-            await Assert.ThrowsAnyAsync<Exception>(() => controller.Pay(commandPayload));
+            await Assert.ThrowsAnyAsync<Exception>(() => controller.Pay(commandPayload, CancellationToken.None));
         }
     }
 }

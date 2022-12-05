@@ -24,11 +24,11 @@ namespace PaymentsAPI.Controllers.Payments
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Pay([FromBody] CreatePaymentCommand command)
+        public async Task<IActionResult> Pay([FromBody] CreatePaymentCommand command, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await mediator.Send(command, CancellationToken.None);
+                var result = await mediator.Send(command, cancellationToken);
                 return Created(result, apiResponseBuilder.buildPaymentRefResponse(result));
             }
             // validation of business logic
@@ -38,7 +38,7 @@ namespace PaymentsAPI.Controllers.Payments
                 {
                     return Created(e.paymentRef, apiResponseBuilder.buildPaymentRefResponse(e.paymentRef, "Your payment was accepted but it's still not available for status check"));
                 }
-                throw e;
+                throw;
             }
         }
 
@@ -46,9 +46,9 @@ namespace PaymentsAPI.Controllers.Payments
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetPayment(string paymentRef)
+        public async Task<IActionResult> GetPayment(string paymentRef, CancellationToken cancellationToken)
         {
-            var result = await mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, CancellationToken.None);
+            var result = await mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, cancellationToken);
             return Ok(result);
         }
     }
