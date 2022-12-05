@@ -42,6 +42,7 @@ The image below represents the core components of the system and its layered str
 2. in mysql environment run `GRANT ALL PRIVELEGES ON *.* TO 'oscar'@'localhost'` - this privileges should be refined
 
 #### Install
+* run `export MYSQL_PASSWD=<mysql_password>` - check `appsettings.json`
 * run `cd payments-api; sh tools/build.sh`
 * dotnet tool install --global dotnet-counters (to view metrics only)
 
