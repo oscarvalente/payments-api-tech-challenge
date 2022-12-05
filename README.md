@@ -23,12 +23,12 @@ The project has 3 root folders:
 #### General architecture
 
 The following image illustrates the system high-level architecture. The Acquiring Bank part would be a possible first-phase solution that is represented by the CKO simulator currently.
-![paymentsapiarc](./payments-api/docs/payments-tech-challenge-UML.drawio.png "Architecture")
+![paymentsapiarc](./docs/payments-tech-challenge-UML.drawio.png "Architecture")
 
 #### Domain-driven architecture
 
 The image below represents the core components of the system and its layered structure.
-![domainarch](./payments-api/docs/domains.drawio.png "Authentication domain (merchants)")
+![domainarch](./docs/domains.drawio.png "Authentication domain (merchants)")
 
 ### Required tools
 * dotnet
@@ -40,9 +40,9 @@ The image below represents the core components of the system and its layered str
 To run the project with docker:
 1. `docker compose up --build`
 2. Copy the MySql container ip `docker network inspect payments-tech-challenge_payments-network`
-![net_ip](./payments-api/docs/docker_sql_container_ip.png "MySQL network ip")
+![net_ip](./docs/docker_sql_container_ip.png "MySQL network ip")
 3. Change `appsettings.json` Server from localhost to the copied ip
-![net_ip](./payments-api/docs/appsettings_ip.png "App Settings server")
+![net_ip](./docs/appsettings_ip.png "App Settings server")
 4. Re-do docker compose
 
 Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be removed.
@@ -54,17 +54,16 @@ Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be
 
 #### Install
 * run `export MYSQL_PASSWD=<mysql_password>` - check `appsettings.json`
-* run `cd payments-api; sh tools/build.sh`
 * dotnet tool install --global dotnet-counters (to view metrics only)
 
 #### Run
 * run `cd payments-api; dotnet run payments-api`
 
 #### Test
-* import Postman collection `./payments-api/tools/3rd-party-integrations/PaymentsAPI.postman_collection` to Postman:
+* import Postman collection `./tools/3rd-party-integrations/PaymentsAPI.postman_collection` to Postman:
     1. /api/auth/sign-up (POST)
     2. /api/auth/sign-in (POST)
-    3. before invoke `/api/pay` please update merchant to verified state (by corresponding Id)  - using script `aux/verify-merchant.sql`
+    3. before invoke `/api/pay` please update merchant to verified state (by corresponding Id)  - using script `tools/verify-merchant.sql`
     4. /api/pay (POST)
     5. /api/payment/:paymentUUID (GET)
 * For simulation purposes payment redirect is done the following way:

@@ -1,13 +1,10 @@
 FROM mysql:8.0
 
 RUN mkdir -p /tools
-COPY ./payments-api/ /setup
+COPY ./tools/ /setup
 
 WORKDIR /setup
 
-#ENV MYSQL_PASSWD="gitCheckout2022!"
-#RUN mysql -u root -psecret -e "CREATE USER 'oscar'@'localhost' IDENTIFIED BY 'gitCheckout2022!'; GRANT ALL PRIVILEGES ON *.* TO 'oscar'@'localhost';"
-#RUN mysql -u "oscar" -p$MYSQL_PASSWD -e source "./tools/create-database.sql"
-CMD [ "mysqld", "--init-file=/setup/tools/create-database.sql" ]
+CMD [ "mysqld", "--init-file=/setup/create-database.sql" ]
 
 EXPOSE 3306
