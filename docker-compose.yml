@@ -1,31 +1,40 @@
 version: '3'
 
 services:
+  db:
+    image: mysql:8.0
+    container_name: payments-mysql
+    user: root
+    ports:
+      - "3306:3306"
+    volumes:
+       - dbdata:/var/lib/mysql
+    environment:
+      - ACCEPT_EULA=Y
+      - MYSQL_ROOT_PASSWORD=gitCheckout2022!
+      - MYSQL_DATABASE=payments_api
+      - MYSQL_USER=oscar
+      - MSSQL_SA_PASSWORD=gitCheckout2022!
+    restart: always
+    networks:
+      - payments-network
+
   webapi:
-    image: "payments-api-image"
+    image: "payments-api"
     container_name: payments-webapi
     ports:
-      - "5042:13401"
+      - "13401:13401"
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./payments-api:/app
     environment:
       - ASPNETCORE_URLS=http://+:13401
     depends_on:
       - db
-    command: sh -c "dotnet /app/publish/payments-api.dll"
-
-  db:
-    image: mysql:8.0
-    container_name: payments-mysql
-    ports:
-      - "3306:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=gitCheckout2022!
-      - MYSQL_DATABASE=payments_api
-      - MYSQL_USER=oscar
-      - MYSQL_PASSWORD=gitCheckout2022!
-    volumes:
-      - ./dbdata:/var/lib/mysql
+    networks:
+      - payments-network
+  
+volumes:
+  dbdata:
+networks:
+  payments-network: {}
