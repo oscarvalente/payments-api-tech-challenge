@@ -5,13 +5,13 @@ public static class ProblemDetails
 {
     public static IServiceCollection AddProblemDetailsMapper(this IServiceCollection services)
     {
-        return services.AddProblemDetails(x =>
+        return services.AddProblemDetails(options =>
         {
-            x.Map<PaymentException>(ex => ex.code == PaymentExceptionCode.PAYMENT_NOT_FOUND
-            || ex.code == PaymentExceptionCode.PAYMENT_RETRIEVAL_NOT_AUTHORIZED ?
+            options.Map<PaymentException>(e => e.code == PaymentExceptionCode.PAYMENT_NOT_FOUND
+            || e.code == PaymentExceptionCode.PAYMENT_RETRIEVAL_NOT_AUTHORIZED ?
             new StatusCodeProblemDetails(StatusCodes.Status404NotFound) :
-            new StatusCodeProblemDetails(StatusCodes.Status400BadRequest));
-            x.Map<Exception>(ex => new StatusCodeProblemDetails(StatusCodes.Status500InternalServerError));
+            new PaymentProblemDetails(e));
+            options.Map<Exception>(ex => new StatusCodeProblemDetails(StatusCodes.Status500InternalServerError));
         });
     }
 

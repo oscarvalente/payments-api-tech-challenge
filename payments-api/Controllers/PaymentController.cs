@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaymentsAPI.Errors;
@@ -46,7 +47,7 @@ namespace PaymentsAPI.Controllers.Payments
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetPayment(string paymentRef, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetPayment([FromRoute][Required][GuidValidator] string paymentRef, CancellationToken cancellationToken)
         {
             var result = await mediator.Send(new GetPaymentQuery() { RefUUID = paymentRef }, cancellationToken);
             return Ok(result);

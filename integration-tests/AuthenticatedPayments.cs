@@ -156,7 +156,6 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
             var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
             Assert.Equal("Merchant is not authorized to do this operation", apiError.Detail);

@@ -154,20 +154,20 @@ namespace integration_tests
             // Assert
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<PaymentProblemDetails>();
             Assert.Equal("Rejected by the acquiring bank", apiError.Detail);
-            // Assert.True(Guid.TryParse(apiError.PaymentRef, out var _));
+            Assert.True(Guid.TryParse(apiError.PaymentRef, out var _));
 
             // - DB
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsAPIDbContext>();
 
-                // Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
-                // Assert.NotNull(payment);
-                // Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
-                // Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
-                // Assert.False(payment.IsAccepted);
+                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
+                Assert.NotNull(payment);
+                Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
+                Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
+                Assert.False(payment.IsAccepted);
             }
         }
 
@@ -300,7 +300,7 @@ namespace integration_tests
 
             // - HTTP
             Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
+            var apiError = await paymentResponse.Content.ReadFromJsonAsync<PaymentProblemDetails>();
             Assert.Equal("Rejected by the acquiring bank", apiError.Detail);
             // Assert.True(Guid.TryParse(apiError.PaymentRef, out var _));
 
@@ -309,10 +309,10 @@ namespace integration_tests
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsAPIDbContext>();
 
-                // Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
-                // Assert.NotNull(payment);
-                // Assert.Equal("BANKZZZZ", payment.AcquiringBankSwift);
-                // Assert.False(payment.IsAccepted);
+                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
+                Assert.NotNull(payment);
+                Assert.Equal("BANKZZZZ", payment.AcquiringBankSwift);
+                Assert.False(payment.IsAccepted);
             }
         }
 

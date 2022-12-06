@@ -349,9 +349,13 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("NotFound", paymentResponse.StatusCode.ToString());
+            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
             var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
-            Assert.Equal("Payment retrieval not authorized", apiError.Detail);
+            Assert.Equal(JsonConvert.SerializeObject(new
+            {
+                Key = "paymentRef",
+                Value = new string[1] { "Invalid payment reference format" }
+            }), JsonConvert.SerializeObject(apiError.Errors.ToList().ElementAt(0)));
         }
 
         /// <summary>
