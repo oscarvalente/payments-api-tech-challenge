@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Web.Responses;
 
 namespace integration_tests
 {

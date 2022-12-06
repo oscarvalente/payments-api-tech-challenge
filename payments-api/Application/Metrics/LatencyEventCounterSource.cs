@@ -1,6 +1,6 @@
 using System.Diagnostics.Tracing;
 
-namespace PaymentsAPI.Services.Metrics
+namespace PaymentsAPI.Metrics
 {
 
     [EventSource(Name = "PaymentsAPI.EventCounter.RequestProcessingTime")]

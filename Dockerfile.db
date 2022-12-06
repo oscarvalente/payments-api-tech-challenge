@@ -1,10 +1,5 @@
 FROM mysql:8.0
 
-RUN mkdir -p /tools
-COPY ./tools/ /setup
-
-WORKDIR /setup
-
-CMD [ "mysqld", "--init-file=/setup/create-database.sql" ]
+COPY ./tools/create-database.sql /docker-entrypoint-initdb.d/
 
 EXPOSE 3306

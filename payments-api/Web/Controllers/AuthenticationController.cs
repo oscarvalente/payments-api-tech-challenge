@@ -2,7 +2,7 @@
 using PaymentsAPI.Services;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Entities;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Utils;
 
 namespace PaymentsAPI.Controllers.Authentication
 {

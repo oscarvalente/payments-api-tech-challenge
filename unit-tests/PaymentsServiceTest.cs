@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using PaymentsAPI.Banks.Services;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
-using PaymentsAPI.Services;
-using PaymentsAPI.Services.Banks;
+using PaymentsAPI.Payments.Services;
+using PaymentsAPI.Utils;
+using PaymentsAPI.Web.Responses;
 
 namespace unit_tests
 {
@@ -14,7 +15,6 @@ namespace unit_tests
         {
             // Arrange
             string pan = "1234-1234-1234-1234";
-            var paymentRef = "1234";
             var cardHolder = "Oscar";
             var expiryDate = new DateOnly(2032, 12, 31);
             var cvv = "323";
@@ -41,7 +41,7 @@ namespace unit_tests
 
 
             // Act
-            Action act = () => payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
+            Action act = () => payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
             PaymentException exception = Assert.Throws<PaymentException>(act);
 
             // Assert
@@ -84,7 +84,7 @@ namespace unit_tests
 
 
             // Act
-            Action act = () => payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
+            Action act = () => payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
             PaymentException exception = Assert.Throws<PaymentException>(act);
 
             // Assert
@@ -138,20 +138,17 @@ namespace unit_tests
                 CreatedAt = DateTime.Now
             };
             var mockPaymentData = new Mock<IPaymentData>();
-            mockPaymentData.Setup(paymentData => paymentData.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant))
+            mockPaymentData.Setup(paymentData => paymentData.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant))
             .Returns((Payment)payment);
             var payments = new Payments(mockBankMatcher.Object, mockPaymentData.Object);
 
             // Act
-            Action act = () => payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
-            PaymentException exception = Assert.Throws<PaymentException>(act);
+            string result = payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
 
             // Assert
             mockDummyBankA.Verify(db => db.isValidPayment(pan, cardHolder, expiryDate, cvv, amount), Times.Once);
-            mockPaymentData.Verify(pd => pd.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant), Times.Once);
-            Assert.Equal("Rejected by the acquiring bank", exception.Message);
-            Assert.Equal(PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK, exception.code);
-            Assert.Equal(paymentRef, exception.paymentRef);
+            mockPaymentData.Verify(pd => pd.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant), Times.Once);
+            Assert.Equal(paymentRef, result);
         }
 
         [Fact]
@@ -199,20 +196,20 @@ namespace unit_tests
                 CreatedAt = DateTime.Now
             };
             var mockPaymentData = new Mock<IPaymentData>();
-            mockPaymentData.Setup(paymentData => paymentData.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant))
+            mockPaymentData.Setup(paymentData => paymentData.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant))
             .Throws(new Exception());
             var payments = new Payments(mockBankMatcher.Object, mockPaymentData.Object);
 
             // Act
-            Action act = () => payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
+            Action act = () => payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
             PaymentException exception = Assert.Throws<PaymentException>(act);
 
             // Assert
             mockDummyBankA.Verify(db => db.isValidPayment(pan, cardHolder, expiryDate, cvv, amount), Times.Once);
-            mockPaymentData.Verify(pd => pd.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant), Times.Once);
+            mockPaymentData.Verify(pd => pd.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", false, merchant), Times.Once);
             Assert.Equal("Error saving payment to database", exception.Message);
             Assert.Equal(PaymentExceptionCode.ERROR_SAVING_PAYMENT, exception.code);
-            Assert.Equal(paymentRef, exception.paymentRef);
+            Assert.IsType<string>(exception.paymentRef);
             Assert.Equal(false, exception.isAccepted);
         }
 
@@ -261,20 +258,20 @@ namespace unit_tests
                 CreatedAt = DateTime.Now
             };
             var mockPaymentData = new Mock<IPaymentData>();
-            mockPaymentData.Setup(paymentData => paymentData.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant))
+            mockPaymentData.Setup(paymentData => paymentData.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant))
             .Throws(new Exception());
             var payments = new Payments(mockBankMatcher.Object, mockPaymentData.Object);
 
             // Act
-            Action act = () => payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
+            Action act = () => payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
             PaymentException exception = Assert.Throws<PaymentException>(act);
 
             // Assert
             mockDummyBankA.Verify(db => db.isValidPayment(pan, cardHolder, expiryDate, cvv, amount), Times.Once);
-            mockPaymentData.Verify(pd => pd.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant), Times.Once);
+            mockPaymentData.Verify(pd => pd.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant), Times.Once);
             Assert.Equal("Error saving payment to database", exception.Message);
             Assert.Equal(PaymentExceptionCode.ERROR_SAVING_PAYMENT, exception.code);
-            Assert.Equal(paymentRef, exception.paymentRef);
+            Assert.IsType<string>(exception.paymentRef);
             Assert.Equal(true, exception.isAccepted);
         }
 
@@ -323,16 +320,16 @@ namespace unit_tests
                 CreatedAt = DateTime.Now
             };
             var mockPaymentData = new Mock<IPaymentData>();
-            mockPaymentData.Setup(paymentData => paymentData.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant))
+            mockPaymentData.Setup(paymentData => paymentData.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant))
             .Returns((Payment)payment);
             var payments = new Payments(mockBankMatcher.Object, mockPaymentData.Object);
 
             // Act
-            string result = payments.pay(merchant, paymentRef, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
+            string result = payments.pay(merchant, cardHolder, pan, expiryDate, cvv, amount, currencyCode);
 
             // Assert
             mockDummyBankA.Verify(db => db.isValidPayment(pan, cardHolder, expiryDate, cvv, amount), Times.Once);
-            mockPaymentData.Verify(pd => pd.addPayment(paymentRef, amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant), Times.Once);
+            mockPaymentData.Verify(pd => pd.addPayment(It.IsAny<string>(), amount, currencyCode, "OSCAR", pan, expiryDate, "swift", true, merchant), Times.Once);
             Assert.Equal(paymentRef, result);
         }
 

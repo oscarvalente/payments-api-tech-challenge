@@ -1,5 +1,5 @@
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Utils
 {
     public interface ICurrencyValidator
     {

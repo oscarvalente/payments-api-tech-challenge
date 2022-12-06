@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace PaymentsAPI.Services.Metrics
+namespace PaymentsAPI.Metrics
 {
     public class RequestProcessingTimeLoggerFilterAttribute : ActionFilterAttribute
     {

@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PaymentsAPI.Errors;
-using PaymentsAPI.Services;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Utils;
+using PaymentsAPI.Validations;
+using PaymentsAPI.Payments.Handlers;
 
 namespace PaymentsAPI.Controllers.Payments
 {
@@ -27,20 +27,8 @@ namespace PaymentsAPI.Controllers.Payments
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Pay([FromBody] CreatePaymentCommand command, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await mediator.Send(command, cancellationToken);
-                return Created(result, apiResponseBuilder.buildPaymentRefResponse(result));
-            }
-            // validation of business logic
-            catch (PaymentException e)
-            {
-                if (e.code == PaymentExceptionCode.ERROR_SAVING_PAYMENT && e.isAccepted)
-                {
-                    return Created(e.paymentRef, apiResponseBuilder.buildPaymentRefResponse(e.paymentRef, "Your payment was accepted but it's still not available for status check"));
-                }
-                throw;
-            }
+            var result = await mediator.Send(command, cancellationToken);
+            return Created(result.RefUUID, apiResponseBuilder.buildPaymentRefResponse(result.RefUUID));
         }
 
         [HttpGet("payment/{paymentRef}")]

@@ -1,5 +1,7 @@
 
-namespace PaymentsAPI.Services
+using PaymentsAPI.Banks.Services;
+
+namespace PaymentsAPI.Utils
 {
     public interface IBankMatcher
     {

@@ -2,7 +2,7 @@ using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 
-namespace PaymentsAPI.Services.Banks
+namespace PaymentsAPI.Banks.Services
 {
     public class DummyAcquiringBankB : IDummyAcquiringBank
     {

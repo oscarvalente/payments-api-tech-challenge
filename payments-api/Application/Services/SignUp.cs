@@ -3,6 +3,7 @@
 using System.Text.RegularExpressions;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
+using PaymentsAPI.Utils;
 
 namespace PaymentsAPI.Services
 {

@@ -1,6 +1,6 @@
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Web.Responses;
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Web
 {
 
     public class APIResult<TObject>

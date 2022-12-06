@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Errors;
 using PaymentsAPI.Utils;
+using PaymentsAPI.Banks.Services;
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Payments.Services
 {
     public class Payments : IPayment
     {
@@ -14,7 +14,7 @@ namespace PaymentsAPI.Services
             bankMatcher = _bankMatcher;
             paymentData = _paymentData;
         }
-        public string pay(Merchant merchant, string paymentRef, string cardHolder, string pan, DateOnly cardExpiryDate, string cvv, decimal amount, string currencyCode)
+        public string pay(Merchant merchant, string cardHolder, string pan, DateOnly cardExpiryDate, string cvv, decimal amount, string currencyCode)
         {
             IDummyAcquiringBank dummyBank = bankMatcher.loadBankByPAN(pan);
             if (dummyBank == null)
@@ -31,9 +31,9 @@ namespace PaymentsAPI.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error while processing payment with bank (swift code: {dummyBank.getSwiftCode()})");
                 throw new PaymentException("Error communicating payment with acquiring bank", PaymentExceptionCode.BANK_PAYMENT_PROCESSING);
             }
+            string paymentRef = Guid.NewGuid().ToString();
             if (!isValidPayment)
             {
                 // if rejected we still save payment as rejected
@@ -45,17 +45,18 @@ namespace PaymentsAPI.Services
                 {
                     throw new PaymentException("Error saving payment to database", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, false);
                 }
-                throw new PaymentException("Rejected by the acquiring bank", PaymentExceptionCode.NOT_AUTHORIZED_BY_BANK, payment.RefUuid);
             }
-
-            // if accepted save payment as accepted
-            try
+            else
             {
-                payment = paymentData.addPayment(paymentRef, amount, currencyCode, cardHolder.ToUpper(), pan, cardExpiryDate, dummyBank.getSwiftCode(), true, merchant);
-            }
-            catch (Exception)
-            {
-                throw new PaymentException("Error saving payment to database", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, true);
+                // if accepted save payment as accepted
+                try
+                {
+                    payment = paymentData.addPayment(paymentRef, amount, currencyCode, cardHolder.ToUpper(), pan, cardExpiryDate, dummyBank.getSwiftCode(), true, merchant);
+                }
+                catch (Exception)
+                {
+                    throw new PaymentException("Error saving payment to database", PaymentExceptionCode.ERROR_SAVING_PAYMENT, paymentRef, true);
+                }
             }
 
             return payment.RefUuid;

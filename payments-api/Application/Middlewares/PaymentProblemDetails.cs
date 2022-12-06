@@ -5,11 +5,11 @@ public class PaymentProblemDetails : Microsoft.AspNetCore.Mvc.ProblemDetails
 {
     public string PaymentRef { get; set; }
     public PaymentProblemDetails() { }
-    public PaymentProblemDetails(PaymentException exception)
+    public PaymentProblemDetails(PaymentException exception, int statusCode)
     {
         Title = "Payment error";
         Detail = exception.Message;
         PaymentRef = exception.paymentRef;
-        Status = StatusCodes.Status400BadRequest;
+        Status = statusCode;
     }
 }

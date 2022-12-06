@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using PaymentsAPI.Validations;
 
 namespace PaymentsAPI.Controllers.Payments
 {

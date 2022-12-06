@@ -25,32 +25,32 @@ The project has 3 root folders:
 The following image illustrates the system high-level architecture. The Acquiring Bank part would be a possible first-phase solution that is represented by the CKO simulator currently.
 ![paymentsapiarc](./docs/payments-tech-challenge-UML.drawio.png "Architecture")
 
+The project follows Clean Architecture scaffolding (https://jasontaylor.dev/clean-architecture-getting-started/) - see "Future work (improvements)"
+
 #### Domain-driven architecture
 
 The image below represents the core components of the system and its layered structure.
 ![domainarch](./docs/domains.drawio.png "Authentication domain (merchants)")
 
-### Required tools
+### Run with Docker
+To run the project with docker you just need to run (in the root folder):
+1. `docker compose up --build`
+2. The later mentioned security step to manually verify the merchant can be done by running `tools/verify-merchant.sql` script against the mysql docker container (by username), _e.g._:
+    `sh .tools/verify-merchant.sh merchant_username`
+
+
+### Run locally
+#### Required tools
 * dotnet
 * dotnet-ef
 * mysql server
 * dotnet-counters (to view metrics only)
 
-#### Run with docker
-To run the project with docker:
-1. `docker compose up --build`
-2. Copy the MySql container ip `docker network inspect payments-tech-challenge_payments-network`
-![net_ip](./docs/docker_sql_container_ip.png "MySQL network ip")
-3. Change `appsettings.json` Server from localhost to the copied ip
-![net_ip](./docs/appsettings_ip.png "App Settings server")
-4. Re-do docker compose
-
-Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be removed.
-
 #### Pre-configuration
 
 1. run `mysql.server start`
 2. in mysql environment run `GRANT ALL PRIVELEGES ON *.* TO 'oscar'@'localhost'` - this privileges should be refined
+3. change `appsettings.json` connection string to server `localhost`
 
 #### Install
 * run `export MYSQL_PASSWD=<mysql_password>` - check `appsettings.json`
@@ -59,11 +59,11 @@ Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be
 #### Run
 * run `cd payments-api; dotnet run payments-api`
 
-#### Test
+### Test
 * import Postman collection `./tools/3rd-party-integrations/PaymentsAPI.postman_collection` to Postman:
     1. /api/auth/sign-up (POST)
     2. /api/auth/sign-in (POST)
-    3. before invoke `/api/pay` please update merchant to verified state (by corresponding Id)  - using script `tools/verify-merchant.sql`
+    3. before invoke `/api/pay` please update merchant to verified state (by corresponding username)  - using script `tools/verify-merchant.sh`
     4. /api/pay (POST)
     5. /api/payment/:paymentUUID (GET)
 * For simulation purposes payment redirect is done the following way:
@@ -74,7 +74,7 @@ Improvement: changes should be done to run solely step 1. Steps 2 to 4 should be
         * A payment whose card **starts with** `1234-56` is forwarded to bank **B**;
         * if card **finishes with digit 0** the payment gets **accepted**, otherwise it gets rejected.
 
-#### Assumptions
+### Assumptions
 * Payments API require authentication
 * All payments processing requested by merchants should be recorded with acquiring bank status
 * If any bank responds to a payment request, even if it is not saved to DB, the API should gracefully handle the error and return a payment reference to the merchant (covered by unit tests)
@@ -97,7 +97,7 @@ Due to time constraints only the more important parts of business logic were tes
 The passage of payments data to the banks is done via simulation within the solution. The payments gateway has the ability to send the a payment data to individual banks (using strategy pattern). This could be easily extended to invoke an external API (real-world scenario) where the payment would be forwarded to the real Acquiring Bank web service and validated there.
 
 ##### Swagger UI
-In addition to the Postman collection, Swagger UI is available in `http://localhost:13401/swagger/` with the endpoints collection.
+In addition to the Postman collection, Swagger UI is available in `http://localhost:13401/swagger/` with the endpoints collection - available just in `development` mode.
 
 ##### Metrics logger
 Start the Web API process, change to `./payments-api/` directory and:
@@ -114,11 +114,12 @@ Start the Web API process, change to `./payments-api/` directory and:
         
             View captured metrics `cat diagnostics.json | jq`
 
-#### Possible improvements
-
-* Client API errors should be not be mixed with API Errors. Changes in API errors (even a slight refactor in a enumeration name) shouldn't provoke breaking changs in the client;
+#### Future work (improvements)
+* Split single project into at least 3 projects: Application, Domain and Infrastructure - projects hierarchy abiding by Clean Architecture;
+* Use Db migrations to support continuous changes in schema in ORM;
+* Split Program.cs into more refined app setup pieces;
+* Replace authentication method for other method for confidential applications (_e.g._ https://auth0.com/docs/api/authentication#client-id-and-client-secret);
 * Review mysql user privileges;
-* Remove password from code and scripts and use a secure storage;
-* AuthenticationController should have input validations before calling any services layer;
-* Containerization with docker;
-* Extend and refine metrics.
+* Use IPaymentsRepository as DB interface for payments;
+* Extend and refine metrics - maybe Promotheus.NET;
+* Rollback/retry payment that was not saved correctly (outbox pattern).

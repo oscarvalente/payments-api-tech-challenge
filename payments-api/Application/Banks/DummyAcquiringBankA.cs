@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace PaymentsAPI.Services.Banks
+namespace PaymentsAPI.Banks.Services
 {
     public class DummyAcquiringBankA : IDummyAcquiringBank
     {

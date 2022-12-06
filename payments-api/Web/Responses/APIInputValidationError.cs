@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace PaymentsAPI.Services.Responses
+namespace PaymentsAPI.Web.Responses
 {
     public class APIInputValidationError : APIError
     {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using PaymentsAPI.Web.Responses;
 
-namespace PaymentsAPI.Services.Responses
+namespace PaymentsAPI.Utils
 {
     public class APIReponseBuilder : IAPIResponseBuilder
     {

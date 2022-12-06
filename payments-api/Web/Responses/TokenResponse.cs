@@ -1,4 +1,4 @@
-namespace PaymentsAPI.Services.Responses
+namespace PaymentsAPI.Web.Responses
 {
     public class TokenResponse
     {

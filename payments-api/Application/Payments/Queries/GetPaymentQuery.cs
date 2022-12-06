@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using PaymentsAPI.Validations;
 using MediatR;
-using PaymentsAPI.Controllers.Payments;
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Payments.Handlers
 {
 
     public class GetPaymentQuery : IRequest<PaymentViewModel>

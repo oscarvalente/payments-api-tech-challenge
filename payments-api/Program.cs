@@ -4,10 +4,11 @@ using PaymentsAPI.Middlewares;
 using PaymentsAPI.DataAccess;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Services;
-using PaymentsAPI.Services.Metrics;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Utils;
 using PaymentsAPI.Extensions;
 using PaymentsGatewayApi.WebApi.Services;
+using PaymentsAPI.Payments.Services;
+using PaymentsAPI.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.AddSingleton<IAPIResponseBuilder, APIReponseBuilder>();
 // data access
 builder.Services.AddScoped<IMerchantData, MerchantData>();
 builder.Services.AddScoped<IPaymentData, PaymentData>();
+// request-scoped merchant
 builder.Services.AddScoped<IRequesterMerchant, RequesterMerchant>();
 
 // register deps
@@ -64,22 +66,22 @@ else
     app.UseHsts();
 }
 
-
-app.UseProblemDetailsMapper();
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseProblemDetailsMapper();
+// Use the UseWhen method to register the middleware only when the predicate is true
+app.UseWhen(ctx => ctx.Request.Path.Value.StartsWith("/api/pay"), appBuilder =>
+{
+    appBuilder.UseMiddleware<AuthenticationValidator>();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseAuthenticationValidator();
-
-// app.UseAPIResponseMapper();
 
 app.Run();
 

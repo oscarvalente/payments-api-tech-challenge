@@ -1,9 +1,9 @@
 using Microsoft.IdentityModel.Tokens;
 using PaymentsAPI.Errors;
-using PaymentsAPI.Services.Banks;
+using PaymentsAPI.Banks.Services;
 using PaymentsAPI.Utils;
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Utils
 {
     public class BankMatcher : IBankMatcher
     {

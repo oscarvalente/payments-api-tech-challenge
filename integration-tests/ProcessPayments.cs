@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using PaymentsAPI.EfStructures;
 using PaymentsAPI.Entities;
 using PaymentsAPI.Services;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Web.Responses;
 
 namespace integration_tests
 {
@@ -153,17 +153,16 @@ namespace integration_tests
 
             // Assert
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<PaymentProblemDetails>();
-            Assert.Equal("Rejected by the acquiring bank", apiError.Detail);
-            Assert.True(Guid.TryParse(apiError.PaymentRef, out var _));
+            Assert.Equal("Created", paymentResponse.StatusCode.ToString());
+            var result = await paymentResponse.Content.ReadFromJsonAsync<PaymentRefResponse>();
+            Assert.True(Guid.TryParse(result.PaymentRef, out var _));
 
             // - DB
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsAPIDbContext>();
 
-                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
+                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == result.PaymentRef);
                 Assert.NotNull(payment);
                 Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
                 Assert.Equal("BANKXXXX", payment.AcquiringBankSwift);
@@ -299,17 +298,16 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
-            var apiError = await paymentResponse.Content.ReadFromJsonAsync<PaymentProblemDetails>();
-            Assert.Equal("Rejected by the acquiring bank", apiError.Detail);
-            // Assert.True(Guid.TryParse(apiError.PaymentRef, out var _));
+            Assert.Equal("Created", paymentResponse.StatusCode.ToString());
+            var result = await paymentResponse.Content.ReadFromJsonAsync<PaymentRefResponse>();
+            Assert.True(Guid.TryParse(result.PaymentRef, out var _));
 
             // - DB
             using (var scope = testWebApplicationFactory.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsAPIDbContext>();
 
-                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == apiError.PaymentRef);
+                Payment payment = dbContext.Payments.SingleOrDefault(p => p.RefUuid == result.PaymentRef);
                 Assert.NotNull(payment);
                 Assert.Equal("BANKZZZZ", payment.AcquiringBankSwift);
                 Assert.False(payment.IsAccepted);

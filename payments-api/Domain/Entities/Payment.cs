@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PaymentsAPI.Entities
+﻿namespace PaymentsAPI.Entities
 {
     public partial class Payment
     {

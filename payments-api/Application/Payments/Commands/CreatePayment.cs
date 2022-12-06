@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
-using PaymentsAPI.Controllers.Payments;
-using PaymentsAPI.Services.Responses;
+using PaymentsAPI.Payments.DTO;
+using PaymentsAPI.Validations;
 
-namespace PaymentsAPI.Services
+namespace PaymentsAPI.Payments.Handlers
 {
-    public class CreatePaymentCommand : IRequest<string>
+    public class CreatePaymentCommand : IRequest<PaymentDTO>
     {
         [Required]
         [Range(1, 500, ErrorMessage = "Invalid amount. Only payments up to 500 are allowed")]
