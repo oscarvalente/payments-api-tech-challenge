@@ -13,7 +13,7 @@ public static class ProblemDetails
                 {
                     case PaymentExceptionCode.PAYMENT_NOT_FOUND:
                     case PaymentExceptionCode.PAYMENT_RETRIEVAL_NOT_AUTHORIZED:
-                        return new StatusCodeProblemDetails(StatusCodes.Status404NotFound);
+                        return new PaymentProblemDetails(e, StatusCodes.Status404NotFound);
                     case PaymentExceptionCode.BANK_PAYMENT_PROCESSING:
                         return new StatusCodeProblemDetails(StatusCodes.Status502BadGateway);
                     case PaymentExceptionCode.ERROR_SAVING_PAYMENT:

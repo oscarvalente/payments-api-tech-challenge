@@ -34,6 +34,7 @@ The image below represents the core components of the system and its layered str
 
 ### Run with Docker
 To run the project with docker you just need to run (in the root folder):
+
 1. `docker compose up --build`
 2. The later mentioned security step to manually verify the merchant can be done by running `tools/verify-merchant.sql` script against the mysql docker container (by username), _e.g._:
     `sh .tools/verify-merchant.sh merchant_username`
@@ -120,6 +121,5 @@ Start the Web API process, change to `./payments-api/` directory and:
 * Split Program.cs into more refined app setup pieces;
 * Replace authentication method for other method for confidential applications (_e.g._ https://auth0.com/docs/api/authentication#client-id-and-client-secret);
 * Review mysql user privileges;
-* Use IPaymentsRepository as DB interface for payments;
 * Extend and refine metrics - maybe Promotheus.NET;
-* Rollback/retry payment that was not saved correctly (outbox pattern).
+* Rollback/retry payment that was not saved correctly ([transactional outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html)).
