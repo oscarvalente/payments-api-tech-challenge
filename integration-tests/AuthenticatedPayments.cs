@@ -77,7 +77,7 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
+            Assert.Equal("Unauthorized", paymentResponse.StatusCode.ToString());
             var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
             Assert.Equal("IDX12741: JWT: '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]' must have three segments (JWS) or five segments (JWE).", apiError.Detail);
         }
@@ -156,7 +156,7 @@ namespace integration_tests
             // Assert
 
             // - HTTP
-            Assert.Equal("BadRequest", paymentResponse.StatusCode.ToString());
+            Assert.Equal("Unauthorized", paymentResponse.StatusCode.ToString());
             var apiError = await paymentResponse.Content.ReadFromJsonAsync<ProblemDetailsError>();
             Assert.Equal("Merchant is not authorized to do this operation", apiError.Detail);
         }

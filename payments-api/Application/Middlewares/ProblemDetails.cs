@@ -11,6 +11,8 @@ public static class ProblemDetails
             {
                 switch (e.code)
                 {
+                    case PaymentExceptionCode.UNAUTHORIZED_ACCESS:
+                        return new PaymentProblemDetails(e, StatusCodes.Status401Unauthorized);
                     case PaymentExceptionCode.PAYMENT_NOT_FOUND:
                     case PaymentExceptionCode.PAYMENT_RETRIEVAL_NOT_AUTHORIZED:
                         return new PaymentProblemDetails(e, StatusCodes.Status404NotFound);
